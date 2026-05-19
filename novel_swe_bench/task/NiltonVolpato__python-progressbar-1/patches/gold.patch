@@ -1,0 +1,28 @@
+diff --git a/progressbar/widgets.py b/progressbar/widgets.py
+index 33eb959..036d127 100644
+--- a/progressbar/widgets.py
++++ b/progressbar/widgets.py
+@@ -145,13 +145,18 @@ class AdaptiveETA(Timer):
+ 
+     TIME_SENSITIVE = True
+     NUM_SAMPLES = 10
++    __slots__ = ('samples',)
++
++    def __init__(self, format='Elapsed Time: %s'):
++        """Initializes an AdaptiveETA widget.
++        Args:
++            format: The format string passed through to Timer.
++        """
++        super().__init__(format=format)
++        self.samples = [(0, 0)] * (self.NUM_SAMPLES + 1)
+ 
+     def _update_samples(self, currval, elapsed):
+-        sample = (currval, elapsed)
+-        if not hasattr(self, 'samples'):
+-            self.samples = [sample] * (self.NUM_SAMPLES + 1)
+-        else:
+-            self.samples.append(sample)
++        self.samples.append((currval, elapsed))
+         return self.samples.pop(0)
+ 
+     def _eta(self, maxval, currval, elapsed):

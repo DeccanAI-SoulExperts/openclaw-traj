@@ -1,0 +1,9 @@
+{
+  "instance_id": "django__django-15569",
+  "repo": "django/django",
+  "base_commit": "884b4c27f506b3c29d58509fc83a35c30ea10d94",
+  "environment_setup_commit": "647480166bfe7532e8c471fef0146e3a17e6c0c9",
+  "version": "4.1",
+  "difficulty": "<15 min fix",
+  "github_url": "https://github.com/django/django"
+}

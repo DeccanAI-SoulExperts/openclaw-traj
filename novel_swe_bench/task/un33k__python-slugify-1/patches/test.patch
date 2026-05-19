@@ -1,0 +1,71 @@
+diff --git a/tests/test_replacements_double_apply.py b/tests/test_replacements_double_apply.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_replacements_double_apply.py
+@@ -0,0 +1,32 @@
++# -*- coding: utf-8 -*-
++import unittest
++
++from slugify import slugify
++
++
++class TestReplacementsDoubleApplyBug(unittest.TestCase):
++    """Tests that replacements are only applied on raw input, not on the processed slug."""
++
++    def test_replacement_key_matches_separator(self):
++        txt = 'hello world'
++        r = slugify(txt, replacements=[['-', '~']])
++        self.assertEqual(r, 'hello-world')
++
++    def test_replacement_no_double_apply_after_transliteration(self):
++        txt = 'förster'
++        r = slugify(txt, replacements=[['o', 'zero']])
++        self.assertEqual(r, 'forster')
++
++    def test_replacement_no_corruption_after_accent_removal(self):
++        txt = 'naïve'
++        r = slugify(txt, replacements=[['i', '1']])
++        self.assertEqual(r, 'naive')
++
++    def test_replacement_no_corruption_after_diacritic_normalization(self):
++        txt = 'résumé'
++        r = slugify(txt, replacements=[['e', '3']])
++        self.assertEqual(r, 'resume')
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/test_replacements_double_apply_edges.py b/tests/test_replacements_double_apply_edges.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_replacements_double_apply_edges.py
+@@ -0,0 +1,27 @@
++# -*- coding: utf-8 -*-
++import unittest
++
++from slugify import slugify
++
++
++class TestReplacementsDoubleApplyEdgeCases(unittest.TestCase):
++    """Edge case tests for the double-replacement bug (lines 186-188)."""
++
++    def test_replacement_key_appears_after_cjk_transliteration(self):
++        txt = '日本語 test'
++        r = slugify(txt, replacements=[['ri', 'sun']])
++        self.assertEqual(r, 'ri-ben-yu-test')
++
++    def test_replacement_value_containing_separator_no_corruption(self):
++        txt = 'über cool'
++        r = slugify(txt, replacements=[['be', 'be-extra']])
++        self.assertEqual(r, 'uber-cool')
++
++    def test_replacement_empty_value_no_silent_deletion(self):
++        txt = 'mañana'
++        r = slugify(txt, replacements=[['an', '']])
++        self.assertEqual(r, 'manana')
++
++
++if __name__ == '__main__':
++    unittest.main()

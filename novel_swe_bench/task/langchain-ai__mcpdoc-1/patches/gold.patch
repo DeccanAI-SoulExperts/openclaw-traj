@@ -1,0 +1,25 @@
+diff --git a/mcpdoc/main.py b/mcpdoc/main.py
+index 905a7ad..4e7db20 100644
+--- a/mcpdoc/main.py
++++ b/mcpdoc/main.py
+@@ -185,6 +185,20 @@ def create_server(
+         abs_path = _normalize_path(path)
+         if not os.path.exists(abs_path):
+             raise FileNotFoundError(f"Local file not found: {abs_path}")
++    
++    if remote_sources:
++        with httpx.Client(
++            follow_redirects=follow_redirects, timeout=timeout
++        ) as validation_client:
++            for entry in remote_sources:
++                url = entry["llms_txt"]
++                try:
++                    response = validation_client.get(url)
++                    response.raise_for_status()
++                except (httpx.HTTPStatusError, httpx.RequestError) as e:
++                    raise ValueError(
++                        f"Cannot fetch documentation source: {url} ({e})"
++                    )
+ 
+     # Parse the domain names in the llms.txt URLs and identify local file paths
+     domains = set(extract_domain(entry["llms_txt"]) for entry in remote_sources)

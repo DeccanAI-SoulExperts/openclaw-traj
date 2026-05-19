@@ -1,0 +1,63 @@
+diff --git a/mcpdoc/main.py b/mcpdoc/main.py
+index 905a7ad..991fe6b 100644
+--- a/mcpdoc/main.py
++++ b/mcpdoc/main.py
+@@ -99,13 +99,13 @@ def _get_server_instructions(doc_sources: list[DocSource]) -> str:
+     for entry in doc_sources:
+         if "name" in entry:
+             source_names.append(entry["name"])
+-        elif _is_http_or_https(entry["llms_txt"]):
++        elif _is_http_or_https(entry['llms_txt']):
+             # Use domain name as fallback for HTTP sources
+-            domain = extract_domain(entry["llms_txt"])
++            domain = extract_domain(entry['llms_txt'])
+             source_names.append(domain.rstrip("/").split("//")[-1])
+         else:
+             # Use filename as fallback for local sources
+-            source_names.append(os.path.basename(entry["llms_txt"]))
++            source_names.append(os.path.basename(entry['llms_txt']))
+ 
+     instructions = [
+         "Use the list_doc_sources tool to see available documentation sources.",
+@@ -173,21 +173,29 @@ def create_server(
+     remote_sources = []
+ 
+     for entry in doc_sources:
+-        url = entry["llms_txt"]
++        url = entry['llms_txt']
+         if _is_http_or_https(url):
+             remote_sources.append(entry)
+         else:
+             local_sources.append(entry)
+ 
++    # Validate remote URLs early: they must include a host component.
++    # This catches cases like "https://" or "http://" which otherwise
++    # would be silently accepted and later cause confusing behavior.
++    for entry in remote_sources:
++        parsed = urlparse(entry['llms_txt'])
++        if not parsed.netloc:
++            raise ValueError(f"Invalid remote URL with no host: {entry['llms_txt']}")
++
+     # Let's verify that all local sources exist
+     for entry in local_sources:
+-        path = entry["llms_txt"]
++        path = entry['llms_txt']
+         abs_path = _normalize_path(path)
+         if not os.path.exists(abs_path):
+             raise FileNotFoundError(f"Local file not found: {abs_path}")
+ 
+     # Parse the domain names in the llms.txt URLs and identify local file paths
+-    domains = set(extract_domain(entry["llms_txt"]) for entry in remote_sources)
++    domains = set(extract_domain(entry['llms_txt']) for entry in remote_sources)
+ 
+     # Add additional allowed domains if specified, or set to '*' if we have local files
+     if allowed_domains:
+@@ -197,7 +205,7 @@ def create_server(
+             domains.update(allowed_domains)
+ 
+     allowed_local_files = set(
+-        _normalize_path(entry["llms_txt"]) for entry in local_sources
++        _normalize_path(entry['llms_txt']) for entry in local_sources
+     )
+ 
+     @server.tool()

@@ -1,0 +1,3 @@
+[
+  "tests/test_ecs/test_ecs_boto3.py::test_create_cluster_with_tags"
+]

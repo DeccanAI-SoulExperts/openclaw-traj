@@ -1,0 +1,8 @@
+[
+  "tests/test_invalid_doc_source_validation.py::test_hostless_https_url_raises_value_error",
+  "tests/test_invalid_doc_source_validation.py::test_hostless_http_url_raises_value_error",
+  "tests/test_invalid_doc_source_validation.py::test_mix_valid_and_hostless_remote_raises_value_error",
+  "tests/test_invalid_doc_source_edge_cases.py::test_remote_url_without_host_raises_value_error",
+  "tests/test_invalid_doc_source_edge_cases.py::test_http_scheme_only_raises_value_error",
+  "tests/test_invalid_doc_source_edge_cases.py::test_mix_valid_and_hostless_url_still_raises"
+]

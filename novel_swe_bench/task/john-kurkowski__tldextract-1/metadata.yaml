@@ -1,0 +1,106 @@
+instance_id: john-kurkowski__tldextract-1
+format: swebench-self-contained-v1
+
+source:
+  origin_dataset: MERGE-Bench
+  origin_task_path: merge-bench/tasks/task_007
+  sourcing_method: synthetic            # human-designed, not scraped from PR/issue
+  created_at: 2026-05-15
+
+repo:
+  full_name: john-kurkowski/tldextract
+  url: https://github.com/john-kurkowski/tldextract
+  base_commit: 96907a264cd8de51433151f6d4a5753d66b565a8
+  base_commit_short: 96907a26
+  base_commit_tag_proximate: v5.3.1
+  snapshot_path: repo_snapshots/john-kurkowski__tldextract@96907a264cd8de51433151f6d4a5753d66b565a8
+  snapshot_size_kb: 460
+  snapshot_file_count: 31
+  snapshot_includes_git: false          # snapshot stripped of .git; rehydrated by Dockerfile
+  visibility: public                    # for traceability; layout would still work if private
+
+task_type: bug_fix
+difficulty: Intermediate
+language: python
+
+bug_summary: >
+  ExtractResult.reverse_domain_name emits a leading '.' when the public suffix is empty,
+  because the implementation builds [self.suffix, self.domain, ...subdomain_labels] and
+  joins with '.', producing '.faketld.google' instead of 'faketld.google' for hostnames
+  outside the Public Suffix List.
+
+# Gold-patch scope
+gold_patch:
+  path: patches/gold.patch
+  files_modified:
+    - tldextract/tldextract.py
+  loc_added: 4
+  loc_removed: 1
+  loc_total_changed: 5
+  new_files: []
+  notes: >
+    Surgical guard in the reverse_domain_name property: if self.suffix is empty,
+    construct the stack from domain (and subdomain labels) only.
+
+# Test patch (injected into snapshot at image-build time)
+test_patch:
+  path: patches/test.patch
+  new_test_files:
+    - tests/test_reverse_domain_name_empty_suffix.py    # 7 F2P tests (5 parametrized + 2 standalone)
+    - tests/test_reverse_domain_name_edge_cases.py      # 5 parametrized edge cases
+  test_count_fail_to_pass: 12
+  test_count_pass_to_pass: 47
+
+# Difficulty signals
+difficulty_signals:
+  repo_size: small                      # 31 source files, ~460 KB
+  architecture_coupling: low            # change is local to one property
+  regression_risk: medium               # reverse_domain_name is a public property
+  review_difficulty: low                # 5-line diff, clear test oracle
+  requirement_ambiguity: clear
+
+# Architectural thresholds (analogous to MERGE-Bench)
+architectural_thresholds:
+  scope_min: 0.7
+  blast_ratio_min: 0.5
+  api_surface_min: 1.0
+  max_new_dependencies: 0
+  max_dead_code: 2
+
+# Trajectory / next-state signal characteristics for OpenClaw-RL
+trajectory_signals:
+  test_failures: true                   # AssertionError actual vs expected reverse_domain_name
+  stack_traces: true                    # point at ExtractResult.reverse_domain_name
+  build_logs: false                     # pure-python; no compile step
+  lint_output: false                    # not required by this task
+  code_diffs: true                      # patch is small and reviewable
+  terminal_output: true                 # pytest output shows which parametrize cases fail
+  human_feedback_possible: true
+  partial_credit_gradient: true         # parametrize gives 0..12 of 12 passing => smooth reward
+
+signal_quality: >
+  A partial fix (e.g. handling empty suffix but forgetting to keep the subdomain reversal,
+  or using str.lstrip('.') on the joined result) passes a strict subset of the parametrized
+  cases, producing an interpretable gradient suitable for PRM training and OPD hindsight
+  hint extraction.
+
+# Validation status (verified locally before this instance was packaged)
+validation:
+  gold_patch_applies_on_snapshot: true
+  test_patch_applies_on_snapshot: true
+  gold_then_test_applies_in_sequence: true
+  fail_to_pass_fail_on_base: true       # 12/12 fail
+  fail_to_pass_pass_on_gold: true       # 12/12 pass
+  pass_to_pass_pass_on_base: true       # 47/47 pass
+  pass_to_pass_pass_on_gold: true       # 47/47 still pass
+  offline: true                         # suffix_list_urls=() disables PSL network fetch
+  python_versions_tested: ["3.11.5"]
+
+# Related evidence (already-collected agent runs against the same bug)
+agent_run_evidence:
+  - agent: claude-code
+    origin: merge-bench/tasks/task_017
+    run_id: "1778149786"
+    resolved: true
+    passed: 59
+    failed: 0

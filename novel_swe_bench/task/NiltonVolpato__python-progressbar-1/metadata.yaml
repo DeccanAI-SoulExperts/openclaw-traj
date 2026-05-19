@@ -1,0 +1,50 @@
+      # SWE-bench-style (clone-from-GitHub) instance metadata
+      instance_id: NiltonVolpato__python-progressbar-1
+      format: swebench-standard-v1
+
+      source:
+        origin_dataset: MERGE-Bench
+        origin_task_id: task_004
+        origin_task_path: merge-bench/tasks/task_004
+        sourcing_method: synthetic
+        created_at: 2026-05-15
+
+      repo:
+        full_name: NiltonVolpato/python-progressbar
+        url: https://github.com/NiltonVolpato/python-progressbar
+        base_commit: b3597a19633c13284e0a05002e62ce22e4ee9fce
+        environment_setup_commit: b3597a19633c13284e0a05002e62ce22e4ee9fce
+        visibility: public
+
+      task_type: refactor
+      difficulty: Intermediate
+      language: python
+
+      test_directives:
+        fail_to_pass_node_ids:
+        - tests/test_adaptive_eta_init.py::TestAdaptiveETARefactorF2P::test_samples_exists_at_construction_time
+- tests/test_adaptive_eta_init.py::TestAdaptiveETARefactorF2P::test_update_samples_no_longer_has_hasattr_branch
+- tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_two_instances_have_independent_buffers
+- tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_pickle_round_trip_preserves_samples
+- tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_deepcopy_produces_independent_buffer
+        pass_to_pass:
+          collection_command: "pytest --collect-only -q tests/"
+          collection_status: TODO
+          note: |
+            Run the collection command after cloning the repo at base_commit
+            and applying patches/test.patch. Paste the resulting node IDs
+            into tests/pass_to_pass.json.
+          hint_files:
+          - tests/
+
+      validation:
+        gold_patch_applies: TODO     # verify with `git apply --check patches/gold.patch`
+        test_patch_applies: TODO     # verify with `git apply --check patches/test.patch`
+        fail_to_pass_fail_on_base: TODO
+        fail_to_pass_pass_on_gold: TODO
+        pass_to_pass_pass_on_base: TODO
+        pass_to_pass_pass_on_gold: TODO
+        notes: |
+          All validation flags are marked TODO because this dataset uses
+          clone-from-GitHub semantics. Run the validation block in README.md
+          against base_commit and fill in the results.

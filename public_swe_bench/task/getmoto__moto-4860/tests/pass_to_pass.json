@@ -1,0 +1,8 @@
+[
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_update_table",
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_describe_table",
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_create_table",
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_create_multiple_tables",
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_create_table_without_retention_properties",
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_delete_table"
+]

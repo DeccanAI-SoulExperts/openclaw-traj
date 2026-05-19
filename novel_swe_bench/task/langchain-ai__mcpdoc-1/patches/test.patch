@@ -1,0 +1,134 @@
+diff --git a/tests/test_invalid_doc_source_validation.py b/tests/test_invalid_doc_source_validation.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_invalid_doc_source_validation.py
+@@ -0,0 +1,67 @@
++"""F2P tests: invalid remote sources must raise ValueError at startup.
++
++These tests fail on the unpatched (base) code and pass on either the
++network-probe fix or the syntactic-validation fix.
++"""
++
++from unittest.mock import patch, MagicMock
++
++import httpx
++import pytest
++
++from mcpdoc.main import create_server
++
++
++def _ok_response():
++    resp = MagicMock(spec=httpx.Response)
++    resp.raise_for_status.return_value = None
++    resp.text = "ok"
++    return resp
++
++
++def test_hostless_https_url_raises_value_error():
++    """An `https://` URL with no host must raise ValueError at startup.
++
++    Caught by both strategies:
++    - Syntactic check: urlparse('https://').netloc is '' -> ValueError
++    - Network probe:   httpx.Client.get('https://') -> ConnectError -> ValueError
++    """
++    bad_sources = [{"llms_txt": "https://"}]
++
++    with patch.object(
++        httpx.Client,
++        "get",
++        side_effect=httpx.ConnectError("no host"),
++    ):
++        with pytest.raises(ValueError):
++            create_server(bad_sources)
++
++
++def test_hostless_http_url_raises_value_error():
++    """An `http://` URL with no host must raise ValueError at startup."""
++    bad_sources = [{"llms_txt": "http://"}]
++
++    with patch.object(
++        httpx.Client,
++        "get",
++        side_effect=httpx.ConnectError("no host"),
++    ):
++        with pytest.raises(ValueError):
++            create_server(bad_sources)
++
++
++def test_mix_valid_and_hostless_remote_raises_value_error():
++    """One valid + one hostless URL must still raise ValueError at startup."""
++    sources = [
++        {"llms_txt": "https://valid.example.com/llms.txt"},
++        {"llms_txt": "https://"},
++    ]
++
++    def fake_get(self, url, *args, **kwargs):
++        if url == "https://":
++            raise httpx.ConnectError("no host")
++        return _ok_response()
++
++    with patch.object(httpx.Client, "get", autospec=True, side_effect=fake_get):
++        with pytest.raises(ValueError):
++            create_server(sources)
+diff --git a/tests/test_invalid_doc_source_edge_cases.py b/tests/test_invalid_doc_source_edge_cases.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_invalid_doc_source_edge_cases.py
+@@ -0,0 +1,55 @@
++"""Edge tests for task_001 — all fail on base, all pass on creator or agent patch."""
++
++from unittest.mock import patch, MagicMock
++
++import httpx
++import pytest
++
++from mcpdoc.main import create_server
++
++
++def _ok_response():
++    resp = MagicMock(spec=httpx.Response)
++    resp.raise_for_status.return_value = None
++    return resp
++
++
++def test_remote_url_without_host_raises_value_error():
++    """`https://` with no host must raise ValueError under either strategy.
++
++    - Syntactic check: urlparse('https://').netloc is '' -> ValueError
++    - Network probe:   httpx.Client.get('https://') -> ConnectError -> ValueError
++    """
++    sources = [{"llms_txt": "https://"}]
++    with patch.object(
++        httpx.Client, "get", side_effect=httpx.ConnectError("no host")
++    ):
++        with pytest.raises(ValueError):
++            create_server(sources)
++
++
++def test_http_scheme_only_raises_value_error():
++    """`http://` alone must raise ValueError under either strategy."""
++    sources = [{"llms_txt": "http://"}]
++    with patch.object(
++        httpx.Client, "get", side_effect=httpx.ConnectError("no host")
++    ):
++        with pytest.raises(ValueError):
++            create_server(sources)
++
++
++def test_mix_valid_and_hostless_url_still_raises():
++    """One valid + one hostless URL must still raise ValueError at startup."""
++    sources = [
++        {"llms_txt": "https://valid.example.com/llms.txt"},
++        {"llms_txt": "https://"},
++    ]
++
++    def fake_get(self, url, *args, **kwargs):
++        if url == "https://":
++            raise httpx.ConnectError("no host")
++        return _ok_response()
++
++    with patch.object(httpx.Client, "get", autospec=True, side_effect=fake_get):
++        with pytest.raises(ValueError):
++            create_server(sources)

@@ -1,0 +1,14 @@
+[
+  "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[https://Us3r:Pwd@Deep.Sub.Domain.notapslsuffixxyzzy123:8080/path?q=1#frag-notapslsuffixxyzzy123.Domain.Sub.Deep]",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[//a.b.notapslsuffixxyzzy123/resource-notapslsuffixxyzzy123.b.a]",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[a.b.notapslsuffixxyzzy123.-notapslsuffixxyzzy123.b.a]",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[xn--bcher-kva.notapslsuffixxyzzy123-notapslsuffixxyzzy123.xn--bcher-kva]",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[MiXeD.Sub.Label.notapslsuffixxyzzy123-notapslsuffixxyzzy123.Label.Sub.MiXeD]",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_unicode_dot_normalization",
+  "tests/test_reverse_domain_name_empty_suffix.py::test_extract_urllib_path",
+  "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[notapslsuffixxyzzy123-notapslsuffixxyzzy123]",
+  "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[google.notapslsuffixxyzzy123-notapslsuffixxyzzy123.google]",
+  "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[a.b.notapslsuffixxyzzy123-notapslsuffixxyzzy123.b.a]",
+  "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[w.x.y.notapslsuffixxyzzy123-notapslsuffixxyzzy123.y.x.w]",
+  "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[one.two.three.four.notapslsuffixxyzzy123-notapslsuffixxyzzy123.four.three.two.one]"
+]

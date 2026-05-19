@@ -1,0 +1,111 @@
+{
+  "instance_id": "john-kurkowski__tldextract-1",
+  "repo": "john-kurkowski/tldextract",
+  "base_commit": "96907a264cd8de51433151f6d4a5753d66b565a8",
+  "environment_setup_commit": "96907a264cd8de51433151f6d4a5753d66b565a8",
+  "version": "5.3.1",
+  "created_at": "2026-05-15T00:00:00Z",
+  "problem_statement": "**Title:** `ExtractResult.reverse_domain_name` emits a leading dot when the public suffix is empty\n\n**Description**\n\nWhen a URL or hostname does not match any entry in the Public Suffix List — i.e. the `suffix` attribute of the returned `ExtractResult` is the empty string — the `reverse_domain_name` property produces a result that begins with a stray leading dot.\n\nMinimal reproduction:\n\n```python\nimport tldextract\nextract = tldextract.TLDExtract(suffix_list_urls=())  # offline, no PSL fetch\nresult = extract('google.faketld')\nprint(result.suffix)               # ''\nprint(result.reverse_domain_name)  # '.faketld.google'  <-- has a leading dot\n```\n\n**Expected behaviour**\n\nWhen `suffix` is the empty string, `reverse_domain_name` should not emit a leading separator. The result should be composed of just `domain` and any reversed subdomain labels, joined by `.`.\n\nFor the example above we would expect `reverse_domain_name == 'faketld.google'`.\n\n**Root cause hint**\n\nThe property is implemented by building a stack `[self.suffix, self.domain, ...reversed_subdomain_labels]` and joining with `'.'`. When `self.suffix` is `''`, the resulting `'.'.join(...)` produces a leading `'.'`. The fix should ensure empty components are not included in the join.\n\n**Constraints**\n\n- Existing behaviour for non-empty suffixes (e.g. `www.example.com` → `'com.example.www'`) must be preserved.\n- No new external dependencies.\n- Do not modify the existing test suite; the fix must keep all current tests passing.\n",
+  "hints_text": "",
+  "patch": "diff --git a/tldextract/tldextract.py b/tldextract/tldextract.py\nindex 021a27b..fb88f95 100644\n--- a/tldextract/tldextract.py\n+++ b/tldextract/tldextract.py\n@@ -239,7 +239,10 @@ class ExtractResult:\n         >>> extract(\"login.example.co.uk\").reverse_domain_name\n         'co.uk.example.login'\n         \"\"\"\n-        stack = [self.suffix, self.domain]\n+        if self.suffix:\n+            stack = [self.suffix, self.domain]\n+        else:\n+            stack = [self.domain] if self.domain else []\n         if self.subdomain:\n             stack.extend(reversed(self.subdomain.split(\".\")))\n         return \".\".join(stack)\n",
+  "test_patch": "diff --git a/tests/test_reverse_domain_name_edge_cases.py b/tests/test_reverse_domain_name_edge_cases.py\nnew file mode 100644\nindex 0000000..3b88e76\n--- /dev/null\n+++ b/tests/test_reverse_domain_name_edge_cases.py\n@@ -0,0 +1,32 @@\n+\n+from __future__ import annotations\n+\n+import tempfile\n+import pytest\n+import tldextract\n+\n+_EXTRACT = tldextract.TLDExtract(\n+    cache_dir=tempfile.mkdtemp(),\n+    suffix_list_urls=(),\n+)\n+\n+_FAKE_TLD = \"notapslsuffixxyzzy123\"\n+\n+\n+@pytest.mark.parametrize(\n+    \"host, expected\",\n+    [\n+        # Single label\n+        (_FAKE_TLD, _FAKE_TLD),\n+\n+        # Increasing subdomain depth\n+        (f\"google.{_FAKE_TLD}\", f\"{_FAKE_TLD}.google\"),\n+        (f\"a.b.{_FAKE_TLD}\", f\"{_FAKE_TLD}.b.a\"),\n+        (f\"w.x.y.{_FAKE_TLD}\", f\"{_FAKE_TLD}.y.x.w\"),\n+        (f\"one.two.three.four.{_FAKE_TLD}\", f\"{_FAKE_TLD}.four.three.two.one\"),\n+    ],\n+)\n+def test_reverse_domain_name_empty_suffix(host, expected):\n+    ext = _EXTRACT(host)\n+    assert ext.suffix == \"\"\n+    assert ext.reverse_domain_name == expected\n\\ No newline at end of file\ndiff --git a/tests/test_reverse_domain_name_empty_suffix.py b/tests/test_reverse_domain_name_empty_suffix.py\nnew file mode 100644\nindex 0000000..638bd50\n--- /dev/null\n+++ b/tests/test_reverse_domain_name_empty_suffix.py\n@@ -0,0 +1,73 @@\n+\n+from __future__ import annotations\n+\n+import tempfile\n+import pytest\n+from urllib.parse import urlsplit\n+\n+import tldextract\n+\n+_FAKE_TLD = \"notapslsuffixxyzzy123\"\n+\n+EXTRACT = tldextract.TLDExtract(\n+    cache_dir=tempfile.mkdtemp(),\n+    suffix_list_urls=(), \n+)\n+\n+\n+def check(host_or_url: str, expected_rdn: str, *, use_urllib: bool = False):\n+    \"\"\"Helper to reduce repetition.\"\"\"\n+    ext = (\n+        EXTRACT.extract_urllib(urlsplit(host_or_url))\n+        if use_urllib\n+        else EXTRACT.extract_str(host_or_url)\n+    )\n+    assert ext.suffix == \"\"\n+    assert ext.reverse_domain_name == expected_rdn\n+\n+\n+@pytest.mark.parametrize(\n+    \"input_val, expected\",\n+    [\n+        # Full URL with extras\n+        (\n+            f\"https://Us3r:Pwd@Deep.Sub.Domain.{_FAKE_TLD}:8080/path?q=1#frag\",\n+            f\"{_FAKE_TLD}.Domain.Sub.Deep\",\n+        ),\n+        # Protocol-relative URL\n+        (\n+            f\"//a.b.{_FAKE_TLD}/resource\",\n+            f\"{_FAKE_TLD}.b.a\",\n+        ),\n+        # Trailing root dot\n+        (\n+            f\"a.b.{_FAKE_TLD}.\",\n+            f\"{_FAKE_TLD}.b.a\",\n+        ),\n+        # Punycode label\n+        (\n+            f\"xn--bcher-kva.{_FAKE_TLD}\",\n+            f\"{_FAKE_TLD}.xn--bcher-kva\",\n+        ),\n+        # Mixed case preserved\n+        (\n+            f\"MiXeD.Sub.Label.{_FAKE_TLD}\",\n+            f\"{_FAKE_TLD}.Label.Sub.MiXeD\",\n+        ),\n+    ],\n+)\n+def test_reverse_domain_simple_cases(input_val, expected):\n+    check(input_val, expected)\n+\n+\n+def test_unicode_dot_normalization():\n+    host = f\"a\\u3002b\\uff0ec\\uff61{_FAKE_TLD}\"\n+    ext = EXTRACT(host)\n+    assert ext.suffix == \"\"\n+    assert ext.subdomain == \"a.b.c\"\n+    assert ext.reverse_domain_name == f\"{_FAKE_TLD}.c.b.a\"\n+\n+\n+def test_extract_urllib_path():\n+    raw = f\"http://a.b.c.d.e.{_FAKE_TLD}/x?y=1\"\n+    check(raw, f\"{_FAKE_TLD}.e.d.c.b.a\", use_urllib=True)\n\\ No newline at end of file\n",
+  "FAIL_TO_PASS": [
+    "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[https://Us3r:Pwd@Deep.Sub.Domain.notapslsuffixxyzzy123:8080/path?q=1#frag-notapslsuffixxyzzy123.Domain.Sub.Deep]",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[//a.b.notapslsuffixxyzzy123/resource-notapslsuffixxyzzy123.b.a]",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[a.b.notapslsuffixxyzzy123.-notapslsuffixxyzzy123.b.a]",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[xn--bcher-kva.notapslsuffixxyzzy123-notapslsuffixxyzzy123.xn--bcher-kva]",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_reverse_domain_simple_cases[MiXeD.Sub.Label.notapslsuffixxyzzy123-notapslsuffixxyzzy123.Label.Sub.MiXeD]",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_unicode_dot_normalization",
+    "tests/test_reverse_domain_name_empty_suffix.py::test_extract_urllib_path",
+    "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[notapslsuffixxyzzy123-notapslsuffixxyzzy123]",
+    "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[google.notapslsuffixxyzzy123-notapslsuffixxyzzy123.google]",
+    "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[a.b.notapslsuffixxyzzy123-notapslsuffixxyzzy123.b.a]",
+    "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[w.x.y.notapslsuffixxyzzy123-notapslsuffixxyzzy123.y.x.w]",
+    "tests/test_reverse_domain_name_edge_cases.py::test_reverse_domain_name_empty_suffix[one.two.three.four.notapslsuffixxyzzy123-notapslsuffixxyzzy123.four.three.two.one]"
+  ],
+  "PASS_TO_PASS": [
+    "tests/main_test.py::test_american",
+    "tests/main_test.py::test_british",
+    "tests/main_test.py::test_no_subdomain",
+    "tests/main_test.py::test_nested_subdomain",
+    "tests/main_test.py::test_odd_but_possible",
+    "tests/main_test.py::test_suffix",
+    "tests/main_test.py::test_local_host",
+    "tests/main_test.py::test_lenient_netloc",
+    "tests/main_test.py::test_looks_like_ip",
+    "tests/main_test.py::test_looks_like_ipv6",
+    "tests/main_test.py::test_similar_to_ip",
+    "tests/main_test.py::test_punycode",
+    "tests/main_test.py::test_invalid_puny_with_puny",
+    "tests/main_test.py::test_invalid_puny_with_nonpuny",
+    "tests/main_test.py::test_puny_with_non_puny",
+    "tests/main_test.py::test_idna_2008",
+    "tests/main_test.py::test_empty",
+    "tests/main_test.py::test_scheme",
+    "tests/main_test.py::test_port",
+    "tests/main_test.py::test_username",
+    "tests/main_test.py::test_query_fragment",
+    "tests/main_test.py::test_order",
+    "tests/main_test.py::test_no_1st_level_tld",
+    "tests/main_test.py::test_dns_root_label",
+    "tests/main_test.py::test_top_domain_under_public_suffix",
+    "tests/main_test.py::test_top_domain_under_registry_suffix",
+    "tests/main_test.py::test_ipv4",
+    "tests/main_test.py::test_ipv4_lookalike",
+    "tests/main_test.py::test_reverse_domain_name_notation",
+    "tests/main_test.py::test_bad_kwargs_no_way_to_fetch",
+    "tests/main_test.py::test_cache_permission",
+    "tests/main_test.py::test_cache_timeouts",
+    "tests/main_test.py::test_find_first_response_without_session",
+    "tests/main_test.py::test_find_first_response_with_session",
+    "tests/main_test.py::test_include_psl_private_domain_attr",
+    "tests/main_test.py::test_tlds_property",
+    "tests/main_test.py::test_global_extract",
+    "tests/main_test.py::test_private_domains_depth",
+    "tests/test_cache.py::test_disk_cache",
+    "tests/test_cache.py::test_get_pkg_unique_identifier",
+    "tests/test_cache.py::test_get_cache_dir",
+    "tests/test_cache.py::test_run_and_cache",
+    "tests/cli_test.py::test_cli_no_input",
+    "tests/cli_test.py::test_cli_parses_args",
+    "tests/cli_test.py::test_cli_posargs",
+    "tests/cli_test.py::test_cli_namedargs",
+    "tests/cli_test.py::test_cli_json_output"
+  ],
+  "format": "swebench-self-contained-v1",
+  "repo_snapshot": "repo_snapshots/john-kurkowski__tldextract@96907a264cd8de51433151f6d4a5753d66b565a8",
+  "install_spec": {
+    "python_version": "3.11",
+    "base_image": "python:3.11-slim",
+    "system_packages": [
+      "git"
+    ],
+    "env": {
+      "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TLDEXTRACT": "5.3.1"
+    },
+    "install_commands": [
+      "python -m pip install --upgrade pip",
+      "python -m pip install 'pytest>=7,<9' sybil pytest-mock responses syrupy",
+      "python -m pip install -e ."
+    ],
+    "test_command": "python -m pytest -q",
+    "test_directives": {
+      "fail_to_pass_files": [
+        "tests/test_reverse_domain_name_empty_suffix.py",
+        "tests/test_reverse_domain_name_edge_cases.py"
+      ],
+      "pass_to_pass_files": [
+        "tests/main_test.py",
+        "tests/test_cache.py",
+        "tests/cli_test.py"
+      ]
+    }
+  },
+  "task_type": "bug_fix",
+  "difficulty": "Intermediate",
+  "source": {
+    "origin_dataset": "MERGE-Bench",
+    "origin_task_path": "merge-bench/tasks/task_007",
+    "sourcing_method": "synthetic"
+  }
+}

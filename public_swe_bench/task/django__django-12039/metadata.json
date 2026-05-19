@@ -1,0 +1,9 @@
+{
+  "instance_id": "django__django-12039",
+  "repo": "django/django",
+  "base_commit": "58c1acb1d6054dfec29d0f30b1033bae6ef62aec",
+  "environment_setup_commit": "0668164b4ac93a5be79f5b87fae83c657124d9ab",
+  "version": "3.1",
+  "difficulty": "15 min - 1 hour",
+  "github_url": "https://github.com/django/django"
+}

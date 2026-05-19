@@ -1,0 +1,1 @@
+Thanks for raising this @SeanBickle. The instance-type-offerings are a direct dump from AWS - strange that they are using `1b` and `1c`, but not `1a`. Marking it as a bug to fix our hardcoded zones to also use `1b` and `1c` though.

@@ -1,0 +1,1 @@
+Thanks for letting us know and providing the test case @taeho911! I'll raise a fix for this shortly.

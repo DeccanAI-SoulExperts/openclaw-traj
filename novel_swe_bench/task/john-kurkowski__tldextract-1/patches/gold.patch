@@ -1,0 +1,16 @@
+diff --git a/tldextract/tldextract.py b/tldextract/tldextract.py
+index 021a27b..fb88f95 100644
+--- a/tldextract/tldextract.py
++++ b/tldextract/tldextract.py
+@@ -239,7 +239,10 @@ class ExtractResult:
+         >>> extract("login.example.co.uk").reverse_domain_name
+         'co.uk.example.login'
+         """
+-        stack = [self.suffix, self.domain]
++        if self.suffix:
++            stack = [self.suffix, self.domain]
++        else:
++            stack = [self.domain] if self.domain else []
+         if self.subdomain:
+             stack.extend(reversed(self.subdomain.split(".")))
+         return ".".join(stack)

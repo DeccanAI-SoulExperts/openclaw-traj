@@ -1,0 +1,1 @@
+That is an oversight indeed - thanks for raising this, @whardier!

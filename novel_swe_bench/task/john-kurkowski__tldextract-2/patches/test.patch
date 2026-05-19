@@ -1,0 +1,78 @@
+diff --git a/tests/test_extract_urllib_port.py b/tests/test_extract_urllib_port.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_extract_urllib_port.py
+@@ -0,0 +1,20 @@
++from urllib.parse import urlsplit
++
++import tldextract
++
++
++def make_extractor():
++    return tldextract.TLDExtract(cache_dir=None, suffix_list_urls=())
++
++
++def test_extract_urllib_matches_string_extraction_for_url_with_port():
++    extractor = make_extractor()
++    url = "http://www.example.com:8080/path"
++
++    from_string = extractor(url)
++    from_parsed = extractor.extract_urllib(urlsplit(url))
++
++    assert from_parsed == from_string
++    assert from_parsed.subdomain == "www"
++    assert from_parsed.domain == "example"
++    assert from_parsed.suffix == "com"
+diff --git a/tests/test_extract_urllib_netloc_normalization.py b/tests/test_extract_urllib_netloc_normalization.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_extract_urllib_netloc_normalization.py
+@@ -0,0 +1,46 @@
++from urllib.parse import urlsplit
++
++import tldextract
++
++
++def make_extractor():
++    return tldextract.TLDExtract(cache_dir=None, suffix_list_urls=())
++
++
++def test_extract_urllib_ignores_userinfo_before_hostname():
++    extractor = make_extractor()
++    url = "http://user:pass@www.example.com/private"
++
++    from_string = extractor(url)
++    from_parsed = extractor.extract_urllib(urlsplit(url))
++
++    assert from_parsed == from_string
++    assert from_parsed.subdomain == "www"
++    assert from_parsed.domain == "example"
++    assert from_parsed.suffix == "com"
++
++
++def test_extract_urllib_handles_bracketed_ipv6_with_port():
++    extractor = make_extractor()
++    url = "http://[::1]:8080/status"
++
++    from_string = extractor(url)
++    from_parsed = extractor.extract_urllib(urlsplit(url))
++
++    assert from_parsed == from_string
++    assert from_parsed.domain == "[::1]"
++    assert from_parsed.suffix == ""
++    assert from_parsed.ipv6 == "::1"
++
++
++def test_extract_urllib_handles_userinfo_and_port_together():
++    extractor = make_extractor()
++    url = "https://user:pass@sub.example.com:9443/dashboard"
++
++    from_string = extractor(url)
++    from_parsed = extractor.extract_urllib(urlsplit(url))
++
++    assert from_parsed == from_string
++    assert from_parsed.subdomain == "sub"
++    assert from_parsed.domain == "example"
++    assert from_parsed.suffix == "com"

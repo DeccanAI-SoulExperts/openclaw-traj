@@ -1,0 +1,8 @@
+{
+  "instance_id": "getmoto__moto-6226",
+  "repo": "getmoto/moto",
+  "base_commit": "0a1924358176b209e42b80e498d676596339a077",
+  "version": "4.1",
+  "github_url": "https://github.com/getmoto/moto",
+  "source_dataset": "SWE-Gym/SWE-Gym"
+}

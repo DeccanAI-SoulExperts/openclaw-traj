@@ -1,0 +1,15 @@
+diff --git a/tldextract/tldextract.py b/tldextract/tldextract.py
+index 021a27b..2ad381c 100644
+--- a/tldextract/tldextract.py
++++ b/tldextract/tldextract.py
+@@ -445,7 +445,9 @@ class TLDExtract:
+             ExtractResult(subdomain='forums', domain='bbc', suffix='co.uk', is_private=False)
+         """
+         return self._extract_netloc(
+-            url.netloc, include_psl_private_domains, session=session
++            lenient_netloc(f"//{url.netloc}"),
++            include_psl_private_domains,
++            session=session,
+         )
+ 
+     def _extract_netloc(

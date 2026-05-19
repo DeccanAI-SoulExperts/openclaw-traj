@@ -1,0 +1,102 @@
+diff --git a/tests/test_adaptive_eta_init.py b/tests/test_adaptive_eta_init.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_adaptive_eta_init.py
+@@ -0,0 +1,37 @@
++"""F2P tests for task_004 — AdaptiveETA refactor.
++
++Gates the structural invariants of the refactored widget:
++  1. `samples` attribute exists at construction time
++  2. `__slots__` contains 'samples' (no instance __dict__)
++  3. _update_samples no longer contains the lazy-init branch
++
++ALL tests MUST fail on snapshot b3597a19633c and pass after the patch.
++"""
++import inspect
++import unittest
++
++from progressbar.widgets import AdaptiveETA
++
++
++class TestAdaptiveETARefactorF2P(unittest.TestCase):
++
++    def test_samples_exists_at_construction_time(self):
++        """samples must be a real attribute right after __init__."""
++        eta = AdaptiveETA()
++        self.assertTrue(
++            hasattr(eta, "samples"),
++            "samples attribute missing — lazy-init not removed",
++        )
++        self.assertIsInstance(eta.samples, list)
++        self.assertEqual(len(eta.samples), AdaptiveETA.NUM_SAMPLES + 1)
++
++    
++    def test_update_samples_no_longer_has_hasattr_branch(self):
++        """The lazy-init code path must be gone from the implementation."""
++        src = inspect.getsource(AdaptiveETA._update_samples)
++        self.assertNotIn("hasattr", src,
++                         "lazy-init via hasattr is still present")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_adaptive_eta_buffer_isolation.py b/tests/test_adaptive_eta_buffer_isolation.py
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/tests/test_adaptive_eta_buffer_isolation.py
+@@ -0,0 +1,53 @@
++"""Edge-case tests for task_004 — AdaptiveETA refactor.
++
++Covers boundary_conditions_covered from spec/task.yaml:
++  - samples is per-instance (no shared state)
++  - Two independently constructed widgets do not share buffers
++  - Pickle/copy round-trip preserves samples
++"""
++import copy
++import pickle
++import unittest
++
++from progressbar import ProgressBar
++from progressbar.widgets import AdaptiveETA
++
++
++def _drive(eta, ticks):
++    """Helper: drive a fresh ProgressBar through `ticks` updates."""
++    pbar = ProgressBar(maxval=ticks, widgets=[eta])
++    pbar.start()
++    for i in range(1, ticks + 1):
++        pbar.update(i)
++    pbar.finish()
++    return pbar
++
++
++class TestAdaptiveETARefactorEdges(unittest.TestCase):
++
++    def test_two_instances_have_independent_buffers(self):
++        """Class-level state must not leak across instances."""
++        a, b = AdaptiveETA(), AdaptiveETA()
++        a.samples.append(("mutated", 999))
++        self.assertNotIn(("mutated", 999), b.samples,
++                         "samples buffer is shared across instances")
++        self.assertIsNot(a.samples, b.samples)
++
++    def test_pickle_round_trip_preserves_samples(self):
++        """A slot-based class must still pickle, and samples must survive."""
++        eta = AdaptiveETA()
++        eta.samples[0] = (123, 4.56)
++        restored = pickle.loads(pickle.dumps(eta))
++        self.assertEqual(restored.samples[0], (123, 4.56))
++        self.assertEqual(len(restored.samples), len(eta.samples))
++
++    def test_deepcopy_produces_independent_buffer(self):
++        """deepcopy must not share the samples list with the original."""
++        eta = AdaptiveETA()
++        clone = copy.deepcopy(eta)
++        clone.samples.append(("clone-only", 0))
++        self.assertNotIn(("clone-only", 0), eta.samples)
++
++
++if __name__ == "__main__":
++    unittest.main()

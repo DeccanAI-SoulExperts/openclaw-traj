@@ -1,0 +1,7 @@
+[
+  "tests/test_adaptive_eta_init.py::TestAdaptiveETARefactorF2P::test_samples_exists_at_construction_time",
+  "tests/test_adaptive_eta_init.py::TestAdaptiveETARefactorF2P::test_update_samples_no_longer_has_hasattr_branch",
+  "tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_two_instances_have_independent_buffers",
+  "tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_pickle_round_trip_preserves_samples",
+  "tests/test_adaptive_eta_buffer_isolation.py::TestAdaptiveETARefactorEdges::test_deepcopy_produces_independent_buffer"
+]

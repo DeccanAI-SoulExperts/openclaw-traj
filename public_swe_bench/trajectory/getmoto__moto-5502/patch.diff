@@ -1,0 +1,12 @@
+diff --git a/moto/ssm/models.py b/moto/ssm/models.py
+index 6f8f43601..e3d2f7602 100644
+--- a/moto/ssm/models.py
++++ b/moto/ssm/models.py
+@@ -641,6 +641,7 @@ class Command(BaseModel):
+             "InstanceIds": self.instance_ids,
+             "MaxConcurrency": self.max_concurrency,
+             "MaxErrors": self.max_errors,
++            "DeliveryTimedOutCount": 0,
+             "NotificationConfig": self.notification_config,
+             "OutputS3Region": self.output_s3_region,
+             "OutputS3BucketName": self.output_s3_bucket_name,

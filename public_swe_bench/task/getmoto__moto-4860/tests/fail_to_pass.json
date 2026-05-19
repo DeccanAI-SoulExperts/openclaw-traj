@@ -1,0 +1,3 @@
+[
+  "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_write_records"
+]

@@ -1,0 +1,9 @@
+{
+  "instance_id": "sympy__sympy-18189",
+  "repo": "sympy/sympy",
+  "base_commit": "1923822ddf8265199dbd9ef9ce09641d3fd042b9",
+  "environment_setup_commit": "28b41c73c12b70d6ad9f6e45109a80649c4456da",
+  "version": "1.6",
+  "difficulty": "<15 min fix",
+  "github_url": "https://github.com/sympy/sympy"
+}

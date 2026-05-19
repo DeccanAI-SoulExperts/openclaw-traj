@@ -1,0 +1,14 @@
+{
+  "instance_id": "un33k__python-slugify-1",
+  "model": "gpt-5",
+  "api_base": "https://api.openai.com/v1",
+  "step_limit": 20,
+  "max_tokens": 4096,
+  "prm_enable": true,
+  "prm_model_path": null,
+  "prm_router_ip": null,
+  "prm_router_port": null,
+  "prm_api_base": "https://api.openai.com/v1",
+  "prm_api_model": "openai/gpt-4o-mini",
+  "prm_step_coef": 1.0
+}

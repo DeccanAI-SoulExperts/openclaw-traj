@@ -1,0 +1,52 @@
+diff --git a/moto/ecs/models.py b/moto/ecs/models.py
+index 1566cbbe3..e13090b41 100644
+--- a/moto/ecs/models.py
++++ b/moto/ecs/models.py
+@@ -2018,7 +2018,7 @@ class EC2ContainerServiceBackend(BaseBackend):
+     ) -> List[Dict[str, str]]:
+         merged_tags = new_tags
+         new_keys = self._get_keys(new_tags)
+-        for existing_tag in existing_tags:
++        for existing_tag in (existing_tags or []):
+             if existing_tag["key"] not in new_keys:
+                 merged_tags.append(existing_tag)
+         return merged_tags
+diff --git a/test_script.py b/test_script.py
+new file mode 100644
+index 000000000..e377609f0
+--- /dev/null
++++ b/test_script.py
+@@ -0,0 +1,13 @@
++import boto3
++from moto import mock_ecs
++
++@mock_ecs
++def test():
++    client = boto3.client('ecs', region_name='us-east-1')
++    res = client.create_cluster(clusterName='foo')
++    arn = res['cluster']['clusterArn']
++    client.tag_resource(resourceArn=arn, tags=[
++        {'key': 'foo', 'value': 'foo'}
++    ])
++
++test()
+diff --git a/test_script_with_existing_tags.py b/test_script_with_existing_tags.py
+new file mode 100644
+index 000000000..163923092
+--- /dev/null
++++ b/test_script_with_existing_tags.py
+@@ -0,0 +1,14 @@
++import boto3
++from moto import mock_ecs
++
++@mock_ecs
++def test():
++    client = boto3.client('ecs', region_name='us-east-1')
++    res = client.create_cluster(clusterName='foo')
++    arn = res['cluster']['clusterArn']
++    # Simulate existing tags
++    client.tag_resource(resourceArn=arn, tags=[{'key': 'initial', 'value': 'tag'}])
++    # Add new tags
++    client.tag_resource(resourceArn=arn, tags=[{'key': 'foo', 'value': 'foo'}])
++
++test()

@@ -1,0 +1,119 @@
+diff --git a/tests/test_reverse_domain_name_edge_cases.py b/tests/test_reverse_domain_name_edge_cases.py
+new file mode 100644
+index 0000000..3b88e76
+--- /dev/null
++++ b/tests/test_reverse_domain_name_edge_cases.py
+@@ -0,0 +1,32 @@
++
++from __future__ import annotations
++
++import tempfile
++import pytest
++import tldextract
++
++_EXTRACT = tldextract.TLDExtract(
++    cache_dir=tempfile.mkdtemp(),
++    suffix_list_urls=(),
++)
++
++_FAKE_TLD = "notapslsuffixxyzzy123"
++
++
++@pytest.mark.parametrize(
++    "host, expected",
++    [
++        # Single label
++        (_FAKE_TLD, _FAKE_TLD),
++
++        # Increasing subdomain depth
++        (f"google.{_FAKE_TLD}", f"{_FAKE_TLD}.google"),
++        (f"a.b.{_FAKE_TLD}", f"{_FAKE_TLD}.b.a"),
++        (f"w.x.y.{_FAKE_TLD}", f"{_FAKE_TLD}.y.x.w"),
++        (f"one.two.three.four.{_FAKE_TLD}", f"{_FAKE_TLD}.four.three.two.one"),
++    ],
++)
++def test_reverse_domain_name_empty_suffix(host, expected):
++    ext = _EXTRACT(host)
++    assert ext.suffix == ""
++    assert ext.reverse_domain_name == expected
+\ No newline at end of file
+diff --git a/tests/test_reverse_domain_name_empty_suffix.py b/tests/test_reverse_domain_name_empty_suffix.py
+new file mode 100644
+index 0000000..638bd50
+--- /dev/null
++++ b/tests/test_reverse_domain_name_empty_suffix.py
+@@ -0,0 +1,73 @@
++
++from __future__ import annotations
++
++import tempfile
++import pytest
++from urllib.parse import urlsplit
++
++import tldextract
++
++_FAKE_TLD = "notapslsuffixxyzzy123"
++
++EXTRACT = tldextract.TLDExtract(
++    cache_dir=tempfile.mkdtemp(),
++    suffix_list_urls=(), 
++)
++
++
++def check(host_or_url: str, expected_rdn: str, *, use_urllib: bool = False):
++    """Helper to reduce repetition."""
++    ext = (
++        EXTRACT.extract_urllib(urlsplit(host_or_url))
++        if use_urllib
++        else EXTRACT.extract_str(host_or_url)
++    )
++    assert ext.suffix == ""
++    assert ext.reverse_domain_name == expected_rdn
++
++
++@pytest.mark.parametrize(
++    "input_val, expected",
++    [
++        # Full URL with extras
++        (
++            f"https://Us3r:Pwd@Deep.Sub.Domain.{_FAKE_TLD}:8080/path?q=1#frag",
++            f"{_FAKE_TLD}.Domain.Sub.Deep",
++        ),
++        # Protocol-relative URL
++        (
++            f"//a.b.{_FAKE_TLD}/resource",
++            f"{_FAKE_TLD}.b.a",
++        ),
++        # Trailing root dot
++        (
++            f"a.b.{_FAKE_TLD}.",
++            f"{_FAKE_TLD}.b.a",
++        ),
++        # Punycode label
++        (
++            f"xn--bcher-kva.{_FAKE_TLD}",
++            f"{_FAKE_TLD}.xn--bcher-kva",
++        ),
++        # Mixed case preserved
++        (
++            f"MiXeD.Sub.Label.{_FAKE_TLD}",
++            f"{_FAKE_TLD}.Label.Sub.MiXeD",
++        ),
++    ],
++)
++def test_reverse_domain_simple_cases(input_val, expected):
++    check(input_val, expected)
++
++
++def test_unicode_dot_normalization():
++    host = f"a\u3002b\uff0ec\uff61{_FAKE_TLD}"
++    ext = EXTRACT(host)
++    assert ext.suffix == ""
++    assert ext.subdomain == "a.b.c"
++    assert ext.reverse_domain_name == f"{_FAKE_TLD}.c.b.a"
++
++
++def test_extract_urllib_path():
++    raw = f"http://a.b.c.d.e.{_FAKE_TLD}/x?y=1"
++    check(raw, f"{_FAKE_TLD}.e.d.c.b.a", use_urllib=True)
+\ No newline at end of file

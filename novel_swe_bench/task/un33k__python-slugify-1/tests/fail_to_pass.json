@@ -1,0 +1,6 @@
+[
+  "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_key_matches_separator",
+  "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_double_apply_after_transliteration",
+  "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_accent_removal",
+  "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_diacritic_normalization"
+]

@@ -1,0 +1,14 @@
+{
+  "instance_id": "getmoto__moto-6226",
+  "model": "gpt-4-turbo",
+  "api_base": "https://api.openai.com/v1",
+  "step_limit": 20,
+  "max_tokens": 4096,
+  "prm_enable": true,
+  "prm_model_path": null,
+  "prm_router_ip": null,
+  "prm_router_port": null,
+  "prm_api_base": "https://api.openai.com/v1",
+  "prm_api_model": "openai/gpt-4o-mini",
+  "prm_step_coef": 1.0
+}

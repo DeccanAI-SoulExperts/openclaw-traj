@@ -1,0 +1,22 @@
+diff --git a/tldextract/tldextract.py b/tldextract/tldextract.py
+index 021a27b..c437066 100644
+--- a/tldextract/tldextract.py
++++ b/tldextract/tldextract.py
+@@ -239,10 +239,14 @@ class ExtractResult:
+         >>> extract("login.example.co.uk").reverse_domain_name
+         'co.uk.example.login'
+         """
+-        stack = [self.suffix, self.domain]
++        parts = []
++        if self.suffix:
++            parts.append(self.suffix)
++        if self.domain:
++            parts.append(self.domain)
+         if self.subdomain:
+-            stack.extend(reversed(self.subdomain.split(".")))
+-        return ".".join(stack)
++            parts.extend(label for label in reversed(self.subdomain.split(".")) if label)
++        return ".".join(parts)
+ 
+     @property
+     def top_domain_under_registry_suffix(self) -> str:

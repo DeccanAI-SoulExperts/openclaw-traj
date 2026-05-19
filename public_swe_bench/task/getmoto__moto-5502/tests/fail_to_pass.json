@@ -1,0 +1,4 @@
+[
+  "tests/test_ssm/test_ssm_boto3.py::test_list_commands",
+  "tests/test_ssm/test_ssm_boto3.py::test_send_command"
+]

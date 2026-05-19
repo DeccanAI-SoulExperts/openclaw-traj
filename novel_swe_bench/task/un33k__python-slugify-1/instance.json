@@ -1,0 +1,28 @@
+{
+  "instance_id": "un33k__python-slugify-1",
+  "repo": "un33k/python-slugify",
+  "repo_url": "https://github.com/un33k/python-slugify",
+  "base_commit": "7b6d5d96c1995e6dccb39a19a13ba78d7d0a3ee4",
+  "environment_setup_commit": "7b6d5d96c1995e6dccb39a19a13ba78d7d0a3ee4",
+  "version": null,
+  "created_at": "2026-05-15T00:00:00Z",
+  "problem_statement": "# Replacements list in slugify() is applied twice and corrupts output\n\n## Description\n\nThe replacements list in slugify() is applied once on the raw input\n(lines 109–111) and then again on the already-processed slug\n(lines 186–188). If any replacement old value happens to match a\nsubstring in the final slug, it silently corrupts the output.\nFor example, slugify(\"10 | 20\", replacements=[[\"or\", \"pipe\"]])\nproduces \"10-pipe-20\" instead of \"10-or-20\".\n\n## Expected behaviour\n\nReplacements should only be applied once on the raw input (lines 109–111).\nThe second replacements pass at lines 186–188 should not exist.\nslugify(\"10 | 20\", replacements=[[\"or\", \"pipe\"]]) should return \"10-or-20\".\n\n## Steps to reproduce\n\n1. pip install -e .\n2. python -c \\\"from slugify import slugify; print(slugify('10 | 20', replacements=[['or', 'pipe']]))\\\"\n3. Observe output is '10-pipe-20' instead of expected '10-or-20'\n\n## Constraints\n\n- Do not modify or remove any existing tests.\n- Do not introduce new external dependencies.\n- Preserve the existing public API.\n- The fix must keep the current test suite green.\n",
+  "hints_text": "",
+  "patch": "diff --git a/slugify/slugify.py b/slugify/slugify.py\nindex 9b5f27f..fa33779 100644\n--- a/slugify/slugify.py\n+++ b/slugify/slugify.py\n@@ -183,9 +183,6 @@ def slugify(\n         text = DEFAULT_SEPARATOR.join(words)\n \n     # finalize user-specific replacements\n-    if replacements:\n-        for old, new in replacements:\n-            text = text.replace(old, new)\n \n     # smart truncate if requested\n     if max_length > 0:\n\n \n",
+  "test_patch": "diff --git a/tests/test_replacements_double_apply.py b/tests/test_replacements_double_apply.py\nnew file mode 100644\nindex 0000000..0000000\n--- /dev/null\n+++ b/tests/test_replacements_double_apply.py\n@@ -0,0 +1,32 @@\n+# -*- coding: utf-8 -*-\n+import unittest\n+\n+from slugify import slugify\n+\n+\n+class TestReplacementsDoubleApplyBug(unittest.TestCase):\n+    \"\"\"Tests that replacements are only applied on raw input, not on the processed slug.\"\"\"\n+\n+    def test_replacement_key_matches_separator(self):\n+        txt = 'hello world'\n+        r = slugify(txt, replacements=[['-', '~']])\n+        self.assertEqual(r, 'hello-world')\n+\n+    def test_replacement_no_double_apply_after_transliteration(self):\n+        txt = 'förster'\n+        r = slugify(txt, replacements=[['o', 'zero']])\n+        self.assertEqual(r, 'forster')\n+\n+    def test_replacement_no_corruption_after_accent_removal(self):\n+        txt = 'naïve'\n+        r = slugify(txt, replacements=[['i', '1']])\n+        self.assertEqual(r, 'naive')\n+\n+    def test_replacement_no_corruption_after_diacritic_normalization(self):\n+        txt = 'résumé'\n+        r = slugify(txt, replacements=[['e', '3']])\n+        self.assertEqual(r, 'resume')\n+\n+\n+if __name__ == '__main__':\n+    unittest.main()\ndiff --git a/tests/test_replacements_double_apply_edges.py b/tests/test_replacements_double_apply_edges.py\nnew file mode 100644\nindex 0000000..0000000\n--- /dev/null\n+++ b/tests/test_replacements_double_apply_edges.py\n@@ -0,0 +1,27 @@\n+# -*- coding: utf-8 -*-\n+import unittest\n+\n+from slugify import slugify\n+\n+\n+class TestReplacementsDoubleApplyEdgeCases(unittest.TestCase):\n+    \"\"\"Edge case tests for the double-replacement bug (lines 186-188).\"\"\"\n+\n+    def test_replacement_key_appears_after_cjk_transliteration(self):\n+        txt = '日本語 test'\n+        r = slugify(txt, replacements=[['ri', 'sun']])\n+        self.assertEqual(r, 'ri-ben-yu-test')\n+\n+    def test_replacement_value_containing_separator_no_corruption(self):\n+        txt = 'über cool'\n+        r = slugify(txt, replacements=[['be', 'be-extra']])\n+        self.assertEqual(r, 'uber-cool')\n+\n+    def test_replacement_empty_value_no_silent_deletion(self):\n+        txt = 'mañana'\n+        r = slugify(txt, replacements=[['an', '']])\n+        self.assertEqual(r, 'manana')\n+\n+\n+if __name__ == '__main__':\n+    unittest.main()\n",
+  "FAIL_TO_PASS": [
+    "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_key_matches_separator",
+    "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_double_apply_after_transliteration",
+    "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_accent_removal",
+    "tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_diacritic_normalization"
+  ],
+  "PASS_TO_PASS": [],
+  "task_type": "bug_fix",
+  "difficulty": "Intermediate",
+  "source": {
+    "origin_dataset": "MERGE-Bench",
+    "origin_task_id": "task_020",
+    "origin_task_path": "merge-bench/tasks/task_020",
+    "sourcing_method": "synthetic"
+  }
+}

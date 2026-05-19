@@ -1,0 +1,49 @@
+      # SWE-bench-style (clone-from-GitHub) instance metadata
+      instance_id: un33k__python-slugify-1
+      format: swebench-standard-v1
+
+      source:
+        origin_dataset: MERGE-Bench
+        origin_task_id: task_020
+        origin_task_path: merge-bench/tasks/task_020
+        sourcing_method: synthetic
+        created_at: 2026-05-15
+
+      repo:
+        full_name: un33k/python-slugify
+        url: https://github.com/un33k/python-slugify
+        base_commit: 7b6d5d96c1995e6dccb39a19a13ba78d7d0a3ee4
+        environment_setup_commit: 7b6d5d96c1995e6dccb39a19a13ba78d7d0a3ee4
+        visibility: public
+
+      task_type: bug_fix
+      difficulty: Intermediate
+      language: python
+
+      test_directives:
+        fail_to_pass_node_ids:
+        - tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_key_matches_separator
+- tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_double_apply_after_transliteration
+- tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_accent_removal
+- tests/test_replacements_double_apply.py::TestReplacementsDoubleApplyBug::test_replacement_no_corruption_after_diacritic_normalization
+        pass_to_pass:
+          collection_command: "pytest --collect-only -q test.py"
+          collection_status: TODO
+          note: |
+            Run the collection command after cloning the repo at base_commit
+            and applying patches/test.patch. Paste the resulting node IDs
+            into tests/pass_to_pass.json.
+          hint_files:
+          - test.py
+
+      validation:
+        gold_patch_applies: TODO     # verify with `git apply --check patches/gold.patch`
+        test_patch_applies: TODO     # verify with `git apply --check patches/test.patch`
+        fail_to_pass_fail_on_base: TODO
+        fail_to_pass_pass_on_gold: TODO
+        pass_to_pass_pass_on_base: TODO
+        pass_to_pass_pass_on_gold: TODO
+        notes: |
+          All validation flags are marked TODO because this dataset uses
+          clone-from-GitHub semantics. Run the validation block in README.md
+          against base_commit and fill in the results.

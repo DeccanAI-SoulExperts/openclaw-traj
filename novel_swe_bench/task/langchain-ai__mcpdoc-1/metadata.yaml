@@ -1,0 +1,51 @@
+      # SWE-bench-style (clone-from-GitHub) instance metadata
+      instance_id: langchain-ai__mcpdoc-1
+      format: swebench-standard-v1
+
+      source:
+        origin_dataset: MERGE-Bench
+        origin_task_id: task_001
+        origin_task_path: merge-bench/tasks/task_001
+        sourcing_method: synthetic
+        created_at: 2026-05-15
+
+      repo:
+        full_name: langchain-ai/mcpdoc
+        url: https://github.com/langchain-ai/mcpdoc
+        base_commit: 8c2729ad799b7573ae8ed2435f9499aeb712a70c
+        environment_setup_commit: 8c2729ad799b7573ae8ed2435f9499aeb712a70c
+        visibility: public
+
+      task_type: bug_fix
+      difficulty: Intermediate
+      language: python
+
+      test_directives:
+        fail_to_pass_node_ids:
+        - tests/test_invalid_doc_source_validation.py::test_hostless_https_url_raises_value_error
+- tests/test_invalid_doc_source_validation.py::test_hostless_http_url_raises_value_error
+- tests/test_invalid_doc_source_validation.py::test_mix_valid_and_hostless_remote_raises_value_error
+- tests/test_invalid_doc_source_edge_cases.py::test_remote_url_without_host_raises_value_error
+- tests/test_invalid_doc_source_edge_cases.py::test_http_scheme_only_raises_value_error
+- tests/test_invalid_doc_source_edge_cases.py::test_mix_valid_and_hostless_url_still_raises
+        pass_to_pass:
+          collection_command: "pytest --collect-only -q tests/"
+          collection_status: TODO
+          note: |
+            Run the collection command after cloning the repo at base_commit
+            and applying patches/test.patch. Paste the resulting node IDs
+            into tests/pass_to_pass.json.
+          hint_files:
+          - tests/
+
+      validation:
+        gold_patch_applies: TODO     # verify with `git apply --check patches/gold.patch`
+        test_patch_applies: TODO     # verify with `git apply --check patches/test.patch`
+        fail_to_pass_fail_on_base: TODO
+        fail_to_pass_pass_on_gold: TODO
+        pass_to_pass_pass_on_base: TODO
+        pass_to_pass_pass_on_gold: TODO
+        notes: |
+          All validation flags are marked TODO because this dataset uses
+          clone-from-GitHub semantics. Run the validation block in README.md
+          against base_commit and fill in the results.
