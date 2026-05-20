@@ -1,18 +1,27 @@
 # openclaw-traj
 
-A small dataset of **SWE-bench–style task instances** paired with **agent trajectories** captured during OpenClaw evaluation runs.
+A small dataset of **SWE-bench–style task instances** paired with **agent trajectories**, plus a set of **human-in-the-loop chat trajectories** captured during OpenClaw evaluation runs.
 
 Each task describes a real (or synthetic) software-engineering bug taken from an open-source Python project, along with the gold patch, failing/passing tests, and an evaluation harness. Each accompanying trajectory contains the full step-by-step interaction of an agent (currently `gpt-5` with a PRM reward model enabled) attempting to solve that task in a sandboxed shell.
+
+Each RLHI chat trajectory is a turn-by-turn conversation between a coding agent (currently `Qwen3-8B`) and a human subject-matter expert (SME) solving a real competitive-programming problem inside the same OpenClawRL environment, with the PRM judge panel scoring every turn.
 
 The repo currently contains two collections:
 
 - **`public_swe_bench/`** — instances drawn from the public SWE-bench benchmark (Django, SymPy, Astropy, Moto, …).
 - **`novel_swe_bench/`** — self-contained instances authored in the MERGE-Bench style (tldextract, python-slugify, python-progressbar, mcpdoc).
+- **`human_chat_rlhi/`** — chat-style RLHI trajectories on real coding problems, with a human SME writing the corrective user turns whenever the agent stalls.
 
 ## Folder structure
 
 ```
 openclaw-traj/
+├── human_chat_rlhi/                           # one JSONL per trajectory
+│   ├── README.md                              # per-collection notes (model, judge, fields)
+│   ├── super-permutation.jsonl                # Codeforces 1822D
+│   ├── snail-and-tree.jsonl                   # snail-climbing-a-tree query problem
+│   ├── dishonest-sellers.jsonl                # Codeforces 779C + 2 SME extensions
+│   └── cutting-out.jsonl                      # Codeforces 1077D + planned SME extensions
 ├── public_swe_bench/
 │   ├── task/                                  # one folder per instance
 │   │   └── <instance_id>/                     # e.g. django__django-12039
@@ -74,7 +83,9 @@ openclaw-traj/
 | `trajectory/.../traj.json` | Full agent conversation: system prompt, user turns, assistant THOUGHT + single-`bash` action, tool returncodes/output — one entry per step. |
 | `trajectory/.../patch.diff` | The diff the agent ultimately submitted (`git add -A && git diff --cached`). |
 | `trajectory/.../meta.json` | Run config: `model`, `step_limit`, `max_tokens`, and PRM (process reward model) settings used during the rollout. |
+| `human_chat_rlhi/<task>.jsonl` | One JSON object per turn of a chat-style RLHI session. Fields include `prompt`, `response`, `tokens`, `rollout_log_probs`, `loss_mask`, `reward` (averaged PRM score), `prm_votes` (per-judge votes), `prm_reason` (panel rationale), `opd_hint` (hindsight-guided distillation supervision), and `next_state` (the SME's next user message). | 
 
 ## Instance IDs
 
-Instance IDs follow `<name>__<repo>-<n>`, e.g. `django__django-12039` or `john-kurkowski__tldextract-1`. The same ID is used as the directory name under both `task/` and `trajectory/`, so a task and its trajectory can always be paired by ID.
+- **SWE-bench collections** (`public_swe_bench/`, `novel_swe_bench/`): instance IDs follow `<name>__<repo>-<n>`, e.g. `django__django-12039` or `john-kurkowski__tldextract-1`. The same ID is used as the directory name under both `task/` and `trajectory/`, so a task and its trajectory can always be paired by ID.
+- **RLHI chat collection** (`human_chat_rlhi/`): trajectories are named after the problem itself — `super-permutation`, `snail-and-tree`, `dishonest-sellers`, `cutting-out`. Each is a single self-contained `.jsonl` file; the problem statement is included as the first user `prompt` inside the file, so no separate `task/` folder is needed.
