@@ -1,71 +1,143 @@
 # human_chat_rlhi
 
-Human-in-the-loop chat trajectories collected during the OpenClaw **RLHI** (Reinforcement Learning from Human Interaction).
+Real, multi-turn chats between an internal SME and an AI coding agent, captured verbatim and PRM-scored. This is the RLHI (Reinforcement Learning from Human Interaction) slice of the OpenClaw trajectory dataset.
 
-Each file in this folder is one complete chat session between a coding agent (`Qwen3-8B`) and a human subject-matter expert (SME) co-solving a real competitive-programming problem inside the OpenClawRL environment. The PRM judge panel scores every agent turn just as in the SWE-bench batches, so the trajectory ends up in the same `(state, action, reward)` shape as everything else in this repo and feeds the same training pipeline.
+There is **no shell sandbox** in this collection. The SME plays the role of the environment: they chat with the agent the way any normal user would, run whatever code it produces on their own machine, paste back the actual stdout / traceback / observed behaviour, say what worked and what didn't, and move on to the next thing they want built. No hints, no nudges, no hand-crafted corrections, just a normal back-and-forth with an AI coding assistant. The 3-judge gpt-4o-mini PRM panel scores every agent turn after the fact, which means the negative-signal turns surface organically from the conversation itself.
 
-## Contents
+All three sessions in this collection were **solved with recovery**, i.e. the agent got the final artefact to a working state, but only after multiple PRM-negative turns the SME had to push the conversation through. That mid-trajectory failure-then-fix arc is the entire point of the RLHI batch: the negative turns are the supervised signal, the eventual recovery is the reward.
 
-| File | Source problem | Turns |
-|---|---|---:|
-| `super-permutation.jsonl` | Codeforces 1822D — Super-Permutation | 13 |
-| `snail-and-tree.jsonl` | Codeforces 1810D - Snail climbing a tree | 20 |
-| `dishonest-sellers.jsonl` | Codeforces 779C — Dishonest Sellers + 2 SME-authored extensions | 11 |
-| `cutting-out.jsonl` | Codeforces 1077D — Cutting Out + planned SME extensions | 13 |
+---
 
-Each file is JSON-Lines: one JSON object per agent turn. The original problem statement is the first `user` message of the first turn's `prompt`, so no separate task file is needed.
+## Quick inventory
+
+| # | Task name         | Domain                              | Agent (backend)        | Turns | +1.0 | +0.333 | −0.333 | −1.0 | 0 | Outcome              |
+|---|-------------------|-------------------------------------|------------------------|-------|------|--------|--------|------|---|----------------------|
+| 1 | `2048GameDev`     | Game development, Python / Pygame   | gpt-4.1 (OpenAI API)   | 15    | 3    | 0      | 0      | 11   | 1 | Solved with recovery |
+| 2 | `chatbotDev`      | API integration, Python             | gpt-4.1 (OpenAI API)   | 10    | 3    | 0      | 0      | 4    | 3 | Solved with recovery |
+| 3 | `ml_problem_stmt` | ML pipeline design, Python          | Qwen3-8B (SGLang)      | 9     | 5    | 0      | 0      | 4    | 0 | Solved with recovery |
+| — | **Total**         | —                                   | —                      | **34**| **11**| **0** | **0** |**19**| **4** | —                |
+
+PRM buckets:
+- **+1.0 / +0.333**: positive turns (unanimous / majority)
+- **−0.333 / −1.0**: negative turns (majority / unanimous)
+- **0**: not scored: final user turns, or reasoning-only turns with no executable artefact to evaluate
+
+The negative-heavy distribution (19 / 34 scored turns) is exactly the signal RLHI is built to harvest: every −1.0 turn is paired with the SME's next message in `next_state`, and an `opd_hint` derived from the recovery is stored on the same record. One record, three training modes (policy-gradient RL, on-policy distillation, DPO).
+
+---
 
 ## Configuration
 
-All four sessions were run with the same configuration. The field names follow the same `meta.json` schema used in `public_swe_bench/` and `novel_swe_bench/` so the three collections can be compared field-by-field.
+| Item                              | Value                                                                 |
+|-----------------------------------|-----------------------------------------------------------------------|
+| Coding agent (sessions 1 & 2)     | `gpt-4.1` via the OpenAI Chat Completions API                          |
+| Coding agent (session 3)          | `Qwen3-8B` served locally through SGLang                               |
+| PRM judge panel                   | 3 × `openai/gpt-4o-mini`, votes averaged per turn                      |
+| Human-in-the-loop                 | Internal SME (Developer)|
+| Sandbox / environment             | None, SME runs code locally and reports observations                  |
+| Turn budget per session           | Open-ended (each session ran until the SME accepted the final result)  |
 
-| Field | Value | Notes |
-|---|---|---|
-| `model` | `Qwen3-8B` | Coding agent under evaluation. |
-| `api_base` | `https://api.openai.com/v1` | OpenAI-compatible endpoint serving the agent. |
-| `max_tokens` | `4096` | Per-turn generation cap. |
-| `step_limit` | unbounded (SME-terminated) | Chat sessions end when the SME considers the task solved; the four trajectories here range from 11 to 20 turns. |
-| `prm_enable` | `true` | Every action turn is scored by the PRM panel. |
-| `prm_api_base` | `https://api.openai.com/v1` | Same endpoint as `api_base`. |
-| `prm_api_model` | `openai/gpt-4o-mini` | Identical to the SWE-bench setup. |
-| `prm_panel_size` | `3` | Three independent judges per scored turn. |
-| `prm_score_aggregation` | mean of per-judge votes | Each judge votes ∈ {+1, −1}; the average is one of `{+1.0, +0.333, −0.333, −1.0}`, or `0` when no verdict was issued. |
-| `prm_step_coef` | `1.0` | Per-turn reward scaling factor; identical to the SWE-bench setup. |
-| `human_in_the_loop` | internal SME | Writes the next user message whenever the agent stalls or produces a negatively-scored step. |
-| `record_log_probs` | `true` | Per-token rollout log-probabilities and a loss mask are recorded with every agent response. |
-| `record_opd_hint` | `true` | A hindsight-guided directive is stored on negatively-scored turns for use as OPD teacher supervision. |
+---
+
+## Folder layout
+human_chat_rlhi/
+├── README.md             # this file
+├── 2048GameDev.jsonl     # 15 turns - Pygame 2048, agent: gpt-4.1
+├── chatbotDev.jsonl      # 10 turns - dual-provider chatbot, agent: gpt-4.1
+└── ml_problem_stmt.jsonl #  9 turns - ML pipeline design, agent: Qwen3-8B
+
+One file per session. Each file is line-delimited JSON: one record per agent turn, in chronological order, using the schema in the **Per-turn record schema** section below. Session-level metadata (`policy_backend`, `policy_model`, `finalized`, `timestamp`) lives on every record under the `metadata` field, so there is no separate `meta.json` to keep in sync.
+
+---
+
+## Per-task detail
+
+### 1. `2048GameDev`: Pygame implementation of 2048 (15 turns, agent: gpt-4.1)
+
+**Setup.** SME asked the agent to build a 4×4 2048 game from scratch under a `2048Game/` folder, split across `game.py` (board / moves / merging / score), `display.py` (terminal renderer), and `main.py` (input loop with `w/a/s/d`/`q`). Game rules — starting tiles, slide-and-merge semantics, single-merge-per-move, post-move spawn, win at 2048, loss when no moves remain, were specified upfront.
+
+**Where the agent stumbled.**
+- **Turn 0 (−1.0):** initial code crashed with a `Traceback` on first run.
+- **Turns 1, 3 (−1.0):** broken slide-and-merge logic — every input reported `"no move made"` even on clearly legal moves; tiles merged but never slid to fill gaps.
+- **Turns 2, 4 (−1.0):** regression `AttributeError`s as the agent kept shipping partial `Game` classes missing `is_game_won` / `get_merged_values` after each rewrite.
+- **Turn 5 (−1.0):** score didn't update on merges (the merge counted matches instead of summing merged tile values).
+- **Turn 7 (−1.0):** after switching to a Pygame UI (`gui.py`), the score/best/next-tile/controls boxes overlapped and the controls text was clipped at the bottom.
+- **Turns 9–12 (−1.0):** iterative Pygame layout pass, agent's UI math kept producing overlapping boxes, then a half-clipped "next tile" preview that bled into the board, then over-wide windows with the board shifted right.
+
+**Where the agent recovered.**
+- **Turn 6 (+1.0):** correct slide-then-merge-then-slide loop, proper merge-flag bookkeeping, accurate scoring.
+- **Turn 8 (+1.0):** added undo / high-score / animation / next-tile-preview features cleanly on top of the working core.
+- **Turn 13 (+1.0):** final Pygame layout pass — replaced the next-tile block with a plain number, fixed box geometry, controls and board no longer overlap. SME signed off with *"Great! The game works perfectly!"*.
+
+**Why it's interesting for training.** Long stretch of unanimous-negative turns (11 / 15) interleaved with three clean unanimous-positive turns. The negative turns are dominated by *regressions the agent introduced itself* after the SME's bug reports, which is a much harder pattern to learn from than a single failed first attempt and a pattern that vanilla SFT data doesn't usually capture.
+
+---
+
+### 2. `chatbotDev`: Dual-provider Python chatbot (10 turns, agent: gpt-4.1)
+
+**Setup.** SME wanted a single Python CLI chatbot that can route a conversation to either the OpenAI or Anthropic API based on user choice. Required the agent to handle: isolated conda environment, dotenv-based API-key loading, model selection, and a clean shared interface across the two SDKs.
+
+**Where the agent stumbled.**
+- **Turn 0 (−1.0):** ignored the isolated-env requirement entirely; SME had to ask for a fresh conda-env walkthrough.
+- **Turn 1 (−1.0):** generated code crashed on first run (OpenAI path errored).
+- **Turns 2, 3 (−1.0):** OpenAI started working but Anthropic kept raising wrong SDK call shape, then wrong model name string.
+- **Turn 4 (0):** Anthropic model-listing script failed because the API key wasn't being read from the environment.
+- **Turn 7 (0):** code-review nit from the SME, the agent had added a defensive *"only pass `system` if non-empty"* check inside `chat_anthropic` but not inside `chat_openai`, so behaviour diverged between providers.
+
+**Where the agent recovered.**
+- **Turn 5 (+1.0):** SME pasted a successful model-list output after loading the key explicitly; agent acknowledged and locked the API-key loading pattern in.
+- **Turn 6 (+1.0):** clean rewrite pinning the Anthropic model to `claude-haiku-4-5-20251001`, no auto-detect, both providers wired through the same call surface.
+- **Turn 8 (+1.0):** symmetric defensive check added to `chat_openai`; SME confirmed *"Great, this works perfectly with the rest of the code."*
+
+**Why it's interesting for training.** The stumbles are characteristic *integration* failures, wrong env assumptions, deprecated model names, asymmetric defensive code, which are exactly the failure modes SFT corpora under-represent because they only show up when you actually run the code against a real API. The recovery turns are also a good example of the agent absorbing a code-review-style comment and applying the fix consistently across both branches of a code path.
+
+---
+
+### 3. `ml_problem_stmt`: ML training-pipeline design for follow-up question generation (9 turns, agent: Qwen3-8B)
+
+**Setup.** SME asked the agent to scope an end-to-end pipeline for fine-tuning a generator that, given an initial user question, produces multiple plausible follow-up questions. The session is design-heavy (this is the open-weight Qwen3-8B agent, run through SGLang) rather than crash-debug-heavy.
+
+**Where the agent stumbled.**
+- **Turn 1 (−1.0):** first dataset-construction proposal leaned on manual annotation, which the SME rejected as infeasible at scale.
+- **Turn 3 (−1.0):** sample generation code was missing the system-prompt slot entirely, the agent had written a `generate_follow_ups_gpt3(prompt)` function with no place for the SME to inject role instructions.
+- **Turn 4 (−1.0):** code used the source dataset's context field alongside the initial question, but the SME wanted the model trained strictly on the *(initial question → follow-up question)* pair, no auxiliary context.
+- **Turn 6 (−1.0):** agent defaulted to T5 as the generation backbone; SME pushed back on capability grounds and asked for Llama or Mistral.
+
+**Where the agent recovered.**
+- **Turns 0, 2 (+1.0):** crisp pipeline outline; clean hybrid (existing datasets + LLM augmentation) data-construction plan.
+- **Turn 5 (+1.0):** correct vLLM port of the generation step, with batched inference and self-hosted-GPU assumptions made explicit.
+- **Turns 7, 8 (+1.0):** sound choice of Llama-3-8B-Instruct as the backbone with a defensible sample-count target (low-tens-of-thousands of pairs for a first fine-tune).
+
+**Why it's interesting for training.** The negative turns aren't crashes, they're *taste* and *requirements-matching* failures (right plan, wrong assumptions). Those are exactly the turns where on-policy distillation (`opd_hint`) and DPO-style preference mining have the most to teach a small open-weight model, because the scalar reward by itself doesn't tell the agent which constraint it violated.
+
+---
 
 ## Per-turn record schema
 
-Every line in `*.jsonl` is one turn with the following fields:
+Identical to the SWE-Bench and Novel slices of OpenClaw, so the same downstream trainer consumes all 18 trajectories without any format conversion.
 
-| Field | Type | Meaning |
-|---|---|---|
-| `id` | string | Stable per-turn identifier. |
-| `session_id` | string | Identifier of the chat session this turn belongs to. |
-| `turn_index` | int | Zero-based index inside the session. |
-| `turn_type` | string | `main` for normal agent turns. |
-| `prompt` | list of `{role, content}` | Full conversation context up to and including the most recent SME message. The first turn's `prompt[0].content` is the original problem statement. |
-| `response` | string | The agent's reply, verbatim, with code blocks preserved. |
-| `tokens` | list of int | Token IDs of `response` under the agent's tokenizer. |
-| `response_length` | int | Number of tokens in `response`. |
-| `rollout_log_probs` | list of float | Per-token log-probability under the policy that produced `response`. |
-| `loss_mask` | list of int | Per-token mask (1 = trainable, 0 = skip) for downstream loss computation. |
-| `reward.score` | float | Averaged PRM score for this turn ∈ `{+1.0, +0.333, −0.333, −1.0, 0}`. |
-| `prm_votes` | list of int | Individual +1 / −1 votes cast by the panel. Length equals `prm_panel_size` for scored turns; `[]` for unscored turns. |
-| `prm_reason` | string | The panel's textual rationale for the score. |
-| `opd_hint` | string | Hindsight-guided directive used as teacher supervision by the OPD trainer. |
-| `next_state.role` | `"user"` | Always `"user"` — this is what the SME sends back to close the loop. |
-| `next_state.content` | string | The next message that pushes the trajectory forward. |
-| `metadata.timestamp` | float | Unix timestamp at which the turn was finalised. |
-| `metadata.finalized` | bool | `true` once the turn has been scored and `next_state` has been written. |
+| Field               | Description                                                                                              |
+|---------------------|----------------------------------------------------------------------------------------------------------|
+| `id`                | Unique turn ID.                                                                                          |
+| `session_id`        | Trajectory ID (matches the JSONL filename).                                                              |
+| `turn_index`        | 0-based turn index within the session.                                                                   |
+| `turn_type`         | `agent` for every record in this collection.                                                             |
+| `prompt`            | Full conversation context up to and including the SME's most recent message.                             |
+| `response`          | The agent's reply to that prompt, verbatim, with code blocks preserved.                                  |
+| `tokens`            | Raw token IDs of the agent's response.                                                                   |
+| `response_length`   | Token count of the response.                                                                             |
+| `rollout_log_probs` | Per-token log-π under the policy that produced the response — directly trainable with GRPO / PPO.        |
+| `loss_mask`         | Per-token mask indicating which tokens contribute to the training loss.                                  |
+| `reward`            | `{ "score": float }` — average PRM score for this turn.                                                  |
+| `prm_votes`         | The 3 individual +1 / −1 votes cast by the panel.                                                        |
+| `prm_reason`        | The panel's textual rationale for the score.                                                             |
+| `opd_hint`          | Hindsight-guided teacher target derived from the next SME correction (consumed by On-Policy Distillation).|
+| `next_state`        | The SME's next user-turn message — closes the loop and pushes the trajectory forward.                    |
+| `metadata`          | Session-level metadata: `policy_backend`, `policy_model`, `finalized`, `timestamp`.                      |
 
-## How these trajectories can be used
+A single record is simultaneously consumable by:
+- **Policy-gradient RL** — `(prompt, response, rollout_log_probs, reward)`.
+- **On-policy distillation** — `opd_hint` as the teacher target.
+- **DPO-style preference mining** — positively vs. negatively scored turns inside the same session.
 
-Because each turn carries reward, per-token log-probabilities, a loss mask, an OPD hint, and the SME's correction, a single chat trajectory feeds several training tracks at once:
-
-- **Policy-gradient RL (PPO / GRPO)** — `(state, action, reward, log-π)` tuples are present per turn with no extra preprocessing.
-- **On-policy distillation (OPD)** — `opd_hint` converts the SME's next-state correction into a teacher-style supervised target.
-- **DPO-style preference pairs** — a positively-scored turn and a negatively-scored turn on the same prompt prefix form a natural preference pair; many such pairs can be mined from one trajectory.
-- **Recovery training** — the `(negative turn → SME correction → positive turn)` triplet teaches the model how to interpret a corrective message at inference time.
-- **PRM training and stress-testing** — every action has both a PRM score and a downstream SME correction, so the same data fine-tunes the next-generation PRM.
+No separate annotation pass required.
