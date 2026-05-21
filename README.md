@@ -21,6 +21,9 @@ The repo currently contains three collections:
 
 18 trajectories is comfortably enough to demonstrate the pipeline, but if you only have time to look at three, look at these. Between them they cover all three collections, both quality labels, and both modes of failure-then-recovery the dataset was designed to surface.
 
+One from each collection, both labels represented, and within each collection the trajectory that most clearly shows what that collection is for: the longest RLHI recovery arc, a recovery on a recognisable OSS bug, and the cleanest minimal-patch fix on a novel task we authored.
+
+
 | ⭐ | Trajectory                                            | Collection             | Category             | Why it's worth opening first |
 |----|-------------------------------------------------------|------------------------|----------------------|-----------------------------|
 | 1  | `2048GameDev` (`human_chat_rlhi/2048GameDev.jsonl`)    | RLHI Chat              | Solved with Recovery | 15-turn end-to-end build of a Pygame 2048 with the SME chatting with `gpt-4.1`. Eleven unanimous-negative turns interleaved with three clean unanimous-positive turns and a final SME sign-off, the most concentrated example in the dataset of the agent *regressing on its own fixes* and then recovering. This is the single best showcase of why RLHI data is structurally different from SFT corpora. |
