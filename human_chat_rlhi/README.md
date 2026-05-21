@@ -40,11 +40,14 @@ The negative-heavy distribution (19 / 34 scored turns) is exactly the signal RLH
 ---
 
 ## Folder layout
+
+```
 human_chat_rlhi/
 ├── README.md             # this file
 ├── 2048GameDev.jsonl     # 15 turns - Pygame 2048, agent: gpt-4.1
 ├── chatbotDev.jsonl      # 10 turns - dual-provider chatbot, agent: gpt-4.1
 └── ml_problem_stmt.jsonl #  9 turns - ML pipeline design, agent: Qwen3-8B
+```
 
 One file per session. Each file is line-delimited JSON: one record per agent turn, in chronological order, using the schema in the **Per-turn record schema** section below. Session-level metadata (`policy_backend`, `policy_model`, `finalized`, `timestamp`) lives on every record under the `metadata` field, so there is no separate `meta.json` to keep in sync.
 
