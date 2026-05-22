@@ -4,6 +4,10 @@ Agent trajectories on the **public SWE-bench Verified** benchmark, generated ins
 
 Each instance is a real bug report or feature request taken from a public Python repository. We pulled 10 verified instances from the SWE-bench Verified set on Hugging Face, spanning 4 repositories: **Astropy**, **Django**, **Moto**, and **SymPy**. For each task, the OpenClawRL environment checks out the repository at the exact base commit specified by the SWE-bench record, hands the agent the problem description, and runs it in a sandboxed shell for up to 20 steps. After every step the PRM judge panel scores what the agent just did.
 
+## Why this collection exists
+
+This is the recognisable surface. SWE-bench Verified is the closest thing the industry has to a shared yardstick for coding agents, so anchoring the dataset on 10 instances from it (Astropy, Django, Moto, SymPy) lets reviewers immediately see our pipeline working on tasks they have seen before. The verifiable F2P / P2P harness also gives us a hard ground-truth check on the PRM panel, when the tests flip from FAIL to PASS, a `+1` verdict is provably correct. That calibration anchor is what the novel and chat collections lean on for their own scoring trust.
+
 ## Inventory
 
 10 instances across 4 repositories. Steps and PRM scores are read directly from the live `traj.json` files.
