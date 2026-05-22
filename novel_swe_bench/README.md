@@ -50,9 +50,30 @@ The 10 instances under `public_swe_bench/` cover four large, well-studied repos 
 - **Fix.** Remove the duplicate replacement pass.
 - **Trajectory.** 7 steps, agent = `gpt-5`. PRM breakdown: **+1.0: 6, +0.333: 0, −0.333: 0, −1.0: 0, not scored: 1.** The shortest run in this folder. The agent found the duplicated loop on the second `grep`, made the one-line deletion, ran the tests, submitted.
 
-
 A task and its trajectory share the same `<instance_id>`, so pairing is by directory name.
 
+## Folder Layout
+```
+novel_swe_bench/
+├── task/                                       # one folder per instance
+│   ├── NiltonVolpato__python-progressbar-1/
+│   │   ├── environment_testbed/                # reproducible /testbed: Dockerfile, setup.sh, eval.sh, repo snapshot
+│   │   ├── patches/                            # gold.patch + test.patch
+│   │   ├── tests/                              # fail_to_pass.json + pass_to_pass.json
+│   │   ├── README.md                           # per-task notes
+│   │   ├── instance.json                       # full SWE-bench record (base_commit, patches, F2P/P2P, eval_script)
+│   │   ├── metadata.yaml                       # repo, base commit, difficulty signals, validation status
+│   │   └── problem_statement.md                # bug description shown to the agent (no file-name hints)
+│   ├── john-kurkowski__tldextract-1/
+│   ├── john-kurkowski__tldextract-2/
+│   ├── langchain-ai__mcpdoc-1/
+│   └── un33k__python-slugify-1/
+└── trajectory/                                 # matches task/ by instance id
+    └── NiltonVolpato__python-progressbar-1/
+        ├── meta.json                           # model, step_limit, PRM config, API base
+        ├── patch.diff                          # final patch the agent submitted (git diff --cached)
+        └── traj.json                           # full message-by-message transcript + per-step PRM scores
+```
 ## Configuration
 
 All 5 runs in this collection were generated with the configuration below (values mirror each `trajectory/<id>/meta.json` exactly).
