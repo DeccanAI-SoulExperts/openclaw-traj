@@ -10,8 +10,6 @@ The 10 instances under `public_swe_bench/` cover four large, well-studied repos 
 
 ## Inventory
 
-## Inventory
-
 | Instance ID | Repo | Task type | Steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored | Outcome |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | `john-kurkowski__tldextract-1` | tldextract | Bug fix | 11 | 9 | 0 | 0 | 0 | 2 | Solved with recovery |
