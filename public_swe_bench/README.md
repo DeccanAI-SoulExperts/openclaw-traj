@@ -26,68 +26,68 @@ Each instance is a real bug report or feature request taken from a public Python
 
 ## Per-task detail
 
-### 1. `astropy__astropy-7606` — TypeError comparing UnrecognizedUnit with None
+### 1. `astropy__astropy-7606` - TypeError comparing UnrecognizedUnit with None
 
 - **Bug.** Calling `unit == None` on an `astropy.units.UnrecognizedUnit` raised a `TypeError` instead of returning `False`. This broke any code that guarded with a simple equality check against `None`.
 - **Fix.** Add an `__eq__` override on `UnrecognizedUnit` that returns `NotImplemented` (or `False`) when the other operand is not a unit.
 - **Trajectory.** 9 steps, `gpt-5`. PRM: **+1.0: 7, −1.0: 1, not scored: 1.** Very clean run — the agent read the failing test, found the missing `__eq__`, patched it, re-ran the test suite, submitted.
 
-### 2. `django__django-12039` — missing whitespace in CREATE INDEX SQL
+### 2. `django__django-12039` - missing whitespace in CREATE INDEX SQL
 
 - **Bug.** Django's `SchemaEditor` generated `CREATE INDEX` statements with no space between the index name and the `ON` keyword in certain code paths, producing invalid SQL.
 - **Fix.** Insert the missing space in the relevant SQL template string.
 - **Trajectory.** 11 steps, `gpt-5`. PRM: **+1.0: 7, +0.333: 1, −1.0: 1, not scored: 2.** Mostly clean. The one negative step was a failed `grep` with a too-narrow pattern; the agent self-corrected on the next turn.
 
-### 3. `django__django-12304` — Enumeration types unusable in templates
+### 3. `django__django-12304` - Enumeration types unusable in templates
 
 - **Bug.** Django's template engine could not render Enumeration type values (e.g. `IntegerChoices`, `TextChoices`) — it raised a `TypeError` because the template variable resolver didn't know how to coerce an enum member to a string.
 - **Fix.** Add a `__str__` delegation in the enum mixin so template rendering calls the right method.
 - **Trajectory.** 11 steps, `gpt-5`. PRM: **+1.0: 7, −1.0: 3, not scored: 1.** Three unanimous-negative steps — the agent first tried patching the template renderer (wrong layer), got flagged twice, then located the correct fix in the enum mixin on the third attempt.
 
-### 4. `django__django-14915` — ModelChoiceIteratorValue is not hashable
+### 4. `django__django-14915` - ModelChoiceIteratorValue is not hashable
 
 - **Bug.** `ModelChoiceIteratorValue`, introduced to wrap choice values in form widgets, did not implement `__hash__`, making it impossible to use as a dictionary key or set member — a common pattern when checking whether a choice is "selected".
 - **Fix.** Add `__hash__ = property(lambda self: hash(self.value))` to the class.
 - **Trajectory.** 8 steps, `gpt-5`. PRM: **+1.0: 6, −1.0: 1, not scored: 1.** One negative step where the agent added `__hash__` in the wrong class (the iterator, not the value wrapper); corrected immediately on the next step.
 
-### 5. `django__django-15569` — lookup cache not cleared on _unregister_lookup
+### 5. `django__django-15569` - lookup cache not cleared on _unregister_lookup
 
 - **Bug.** `RegisterLookupMixin._unregister_lookup()` removed a lookup from the registry but did not clear the internal lookup cache, so the unregistered lookup could still be found by subsequent calls that hit the stale cache.
 - **Fix.** Call `cls._clear_cached_lookups()` inside `_unregister_lookup()`, mirroring what `register_lookup` already did.
 - **Trajectory.** 9 steps, `gpt-5`. PRM: **+1.0: 6, −0.333: 1, −1.0: 1, not scored: 1.** One majority-negative step (cache-clearing called on the wrong class in a hierarchy) and one unanimous-negative step (a test run that failed) before the agent pinpointed the correct call site.
 
-### 6. `getmoto__moto-4860` — TimestreamWrite uses append instead of extend
+### 6. `getmoto__moto-4860` - TimestreamWrite uses append instead of extend
 
 - **Bug.** In moto's Timestream Write mock, `write_records` was using `.append(records)` to accumulate new records into an existing list, which nested the incoming list as a single element rather than adding the records individually. Queries on the mock returned wrong results as a consequence.
 - **Fix.** Replace `.append(records)` with `.extend(records)`.
 - **Trajectory.** 12 steps, `gpt-4-turbo`. PRM: **+1.0: 6, −1.0: 5, not scored: 1.** The hardest run in this collection. The agent spent five steps exploring unrelated parts of the Timestream implementation before locating the one-word fix. The five negative steps are high-value training signal for teaching the model to narrow its search more efficiently.
 
-### 7. `getmoto__moto-5502` — DeliveryTimedOutCount missing from SSM list_commands
+### 7. `getmoto__moto-5502` - DeliveryTimedOutCount missing from SSM list_commands
 
 - **Bug.** moto's SSM mock omitted the `DeliveryTimedOutCount` field from `list_commands` responses, causing any code that read that field to raise a `KeyError`.
 - **Fix.** Add `DeliveryTimedOutCount` to the response dictionary in the SSM mock, defaulting to `0`.
 - **Trajectory.** 10 steps, `gpt-4-turbo`. PRM: **+1.0: 8, −1.0: 1, not scored: 1.** Clean run. The single negative step was an overly broad `grep` that pulled in unrelated files; the agent narrowed it and found the response builder immediately.
 
-### 8. `getmoto__moto-5515` — Inconsistent us-west-1 availability zones
+### 8. `getmoto__moto-5515` - Inconsistent us-west-1 availability zones
 
 - **Bug.** moto's EC2 mock returned a different number of availability zones for `us-west-1` depending on how the query was made (describe vs. filter), causing tests that expected a consistent zone list to flap.
 - **Fix.** Align the hardcoded `us-west-1` zone list in both code paths.
 - **Trajectory.** 7 steps, `gpt-4-turbo`. PRM: **+1.0: 5, −0.333: 1, not scored: 1.** Short, efficient run. One majority-negative step where the agent patched only one of the two code paths; the failing test pointed it straight to the second.
 
-### 9. `getmoto__moto-6226` — ECS tag_resource raises TypeError on untagged clusters
+### 9. `getmoto__moto-6226` - ECS tag_resource raises TypeError on untagged clusters
 
 - **Bug.** moto's ECS mock raised a `TypeError` in `tag_resource` when the target cluster had no existing tags, because the code tried to call `.update()` on `None` rather than initialising an empty dict first.
 - **Fix.** Guard with `or {}` when reading the existing tag dict.
 - **Trajectory.** 7 steps, `gpt-4-turbo`. PRM: **+1.0: 5, +0.333: 1, not scored: 1.** Short, clean run. One majority-positive step (two of three judges agreed it was good but one was uncertain about the edge-case coverage).
 
-### 10. `sympy__sympy-18189` — diophantine returns incomplete results with permute=True
+### 10. `sympy__sympy-18189` - diophantine returns incomplete results with permute=True
 
 - **Bug.** `sympy.diophantine` with `permute=True` returned different (incomplete) result sets depending on the order of symbols passed in `syms`. The permutation logic was not accounting for all sign combinations when the symbol order differed from the canonical one.
 - **Fix.** Normalise the symbol ordering before generating permutations so the result set is order-independent.
 - **Trajectory.** 11 steps, `gpt-5`. PRM: **+1.0: 8, +0.333: 1, −1.0: 1, not scored: 1.** One negative step where the agent applied the normalisation in the wrong scope (per-solution rather than per-call); corrected on the next step.
 
 ## Folder layout
-
+```
 public_swe_bench/
 ├── task/
 │   └── <instance_id>/
@@ -107,7 +107,7 @@ public_swe_bench/
         ├── meta.json
         ├── patch.diff
         └── traj.json
-
+```
 
 A task and its trajectory always share the same `<instance_id>`, so pairing is by directory name.
 
