@@ -78,16 +78,9 @@ Drawn from the public SWE-bench Verified benchmark. Five `Clean Solution`s (astr
 
 Tasks we authored ourselves over suitable public repos, in the same SWE-bench format (instance ID + repo + base commit + gold patch + test patch + F2P / P2P lists). Two `Clean Solution`s (tldextract-1, python-slugify-1) and three `Solved with Recovery` (tldextract-2, mcpdoc-1, python-progressbar-1). The repo snapshot, dependencies, failing tests, and reference patch are all shipped inside the task folder, so the task is reproducible without internet access.
 
-### `human_chat_rlhi/` — 3 SME ↔ agent chat sessions
+### `human_chat_rlhi/` - 3 SME ↔ agent chat sessions
 
-| Session                  | Agent (backend)        | Turns | +1.0 | +0.333 | −0.333 | −1.0 | 0 | Category              |
-|--------------------------|------------------------|-------|------|--------|--------|------|---|-----------------------|
-| `2048GameDev.jsonl` ⭐    | gpt-4.1 (OpenAI API)   | 15    | 3    | 0      | 0      | 11   | 1 | Solved with Recovery  |
-| `chatbotDev.jsonl`       | gpt-4.1 (OpenAI API)   | 10    | 3    | 0      | 0      | 4    | 3 | Solved with Recovery  |
-| `ml_problem_stmt.jsonl`  | Qwen3-8B (SGLang)      | 9     | 5    | 0      | 0      | 4    | 0 | Solved with Recovery  |
-| **Total**                |                        | **34**| **11**| **0** | **0** |**19**| **4** |                       |
-
-The negative-heavy split (19 / 34 scored turns) is exactly what RLHI is built to consume: every −1.0 turn is paired with the SME's next message in `next_state`, and an `opd_hint` derived from the eventual recovery is stored on the same record. One record, three training modes (policy-gradient RL, on-policy distillation, DPO-style preference mining). See `human_chat_rlhi/README.md` for per-session details (what the agent stumbled on, how it recovered, why each session is interesting for training).
+Three end-to-end coding sessions where an internal SME chatted with the agent the way any user would, building a Pygame 2048 with `gpt-4.1`, a dual-provider chatbot with `gpt-4.1`, and an ML training pipeline with `Qwen3-8B`. No shell sandbox here: the SME ran the code locally and pasted back stdout, tracebacks, and observed behaviour. All three are `Solved with Recovery`, and the 19-of-34 negative-turn split across the batch is exactly the failure-then-recovery signal RLHI is built to consume. See `human_chat_rlhi/README.md` for per-session detail.
 
 ---
 
