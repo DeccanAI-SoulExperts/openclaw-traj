@@ -21,14 +21,14 @@ The repo currently contains three collections:
 
 18 trajectories is comfortably enough to demonstrate the pipeline, but if you only have time to look at three, look at these. Between them they cover all three collections, both quality labels, and both modes of failure-then-recovery the dataset was designed to surface.
 
-One from each collection, both labels represented, and within each collection the trajectory that most clearly shows what that collection is for: the longest RLHI recovery arc, a recovery on a recognisable OSS bug, and the cleanest minimal-patch fix on a novel task we authored.
+Top 3 trajectories: one from each collection, all clearing the ≥30% negative-signal bar; together they prove the failure-then-recovery arc the dataset is built to capture.
 
 
 | ⭐ | Trajectory                                            | Collection             | Category             | Why it's worth opening first |
 |----|-------------------------------------------------------|------------------------|----------------------|-----------------------------|
 | 1  | `2048GameDev` (`human_chat_rlhi/2048GameDev.jsonl`)    | RLHI Chat              | Solved with Recovery | 15-turn end-to-end build of a Pygame 2048 with the SME chatting with `gpt-4.1`. Eleven unanimous-negative turns interleaved with three clean unanimous-positive turns and a final SME sign-off, the most concentrated example in the dataset of the agent *regressing on its own fixes* and then recovering. This is the single best showcase of why RLHI data is structurally different from SFT corpora. |
-| 2  | `sympy__sympy-18189` (`public_swe_bench/.../sympy__sympy-18189`) | Public SWE-bench       | Solved with Recovery | Real bug in a heavily-trafficked OSS project. The agent had to navigate a large codebase, locate the regression, and produce a patch that passes both the new F2P test and a full P2P regression suite, with a couple of negative turns mid-trajectory where the gold patch wasn't yet right. Good showcase of the agent operating under realistic SWE-bench conditions. |
-| 3  | `un33k__python-slugify-1` (`novel_swe_bench/.../un33k__python-slugify-1`) | Novel SWE-bench        | Clean Solution       | One of our own authored tasks. The user-supplied `replacements` list was being applied twice in `slugify`; the agent identified the duplicate pass and produced a minimal, gold-matching patch in a clean unanimous-positive trajectory. Best example of the agent nailing a self-contained novel task in one go. |
+| 2  | `NiltonVolpato__python-progressbar-1 (novel_swe_bench/.../NiltonVolpato__python-progressbar-1)`) | Novel SWE-bench     | One of our own authored tasks: an AdaptiveETA refactor that replaces hasattr-based lazy initialisation with an explicit __init__ and __slots__. At 20 steps it is the longest trajectory in the entire corpus, with 9 negative turns (53% negative, scored basis) and 8 positive turns interleaved a sustained refactor-and-recover arc. |
+| 3  | `getmoto__moto-4860 (public_swe_bench/.../getmoto__moto-4860)`) | Public SWE-bench        | Solved with Recovery       | Real bug in moto (a heavily-trafficked AWS-mocking library): TimestreamWrite.write_records used append instead of extend, silently dropping multi-record writes. The agent ran 12 steps with 5 unanimous-negative turns (46% negative), multiple wrong-direction attempts before locating the one-line semantic difference, plus a regression turn the agent had to walk back. Best showcase of the agent operating under realistic SWE-bench conditions: navigating a large codebase, getting it wrong, and recovering. |
 
 ---
 
@@ -39,18 +39,18 @@ One from each collection, both labels represented, and within each collection th
 | Novel SWE       | `john-kurkowski__tldextract-1`                    | Clean Solution        |
 | Novel SWE       | `john-kurkowski__tldextract-2`                    | Solved with Recovery  |
 | Novel SWE       | `langchain-ai__mcpdoc-1`                          | Solved with Recovery  |
-| Novel SWE       | `NiltonVolpato__python-progressbar-1`             | Solved with Recovery  |
-| Novel SWE       | `un33k__python-slugify-1` ⭐                       | Clean Solution        |
+| Novel SWE       | `NiltonVolpato__python-progressbar-1` ⭐             | Solved with Recovery  |
+| Novel SWE       | `un33k__python-slugify-1`                        | Clean Solution        |
 | Open Source     | `astropy__astropy-7606`                           | Clean Solution        |
 | Open Source     | `django__django-12039`                            | Solved with Recovery  |
 | Open Source     | `django__django-12304`                            | Solved with Recovery  |
 | Open Source     | `django__django-14915`                            | Solved with Recovery  |
 | Open Source     | `django__django-15569`                            | Solved with Recovery  |
-| Open Source     | `getmoto__moto-4860`                              | Solved with Recovery  |
+| Open Source     | `getmoto__moto-4860` ⭐                              | Solved with Recovery  |
 | Open Source     | `getmoto__moto-5502`                              | Clean Solution        |
 | Open Source     | `getmoto__moto-5515`                              | Clean Solution        |
 | Open Source     | `getmoto__moto-6226`                              | Clean Solution        |
-| Open Source     | `sympy__sympy-18189` ⭐                            | Solved with Recovery  |
+| Open Source     | `sympy__sympy-18189`                            | Solved with Recovery  |
 | Chat            | `2048GameDev.jsonl` ⭐                             | Solved with Recovery  |
 | Chat            | `chatbotDev.jsonl`                                | Solved with Recovery  |
 | Chat            | `ml_problem_stmt.jsonl`                           | Solved with Recovery  |
