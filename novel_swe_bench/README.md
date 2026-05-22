@@ -10,13 +10,16 @@ The 10 instances under `public_swe_bench/` cover four large, well-studied repos 
 
 ## Inventory
 
-| Instance ID | Repo | Task type | Steps | Outcome on the run |
-|---|---|---|---:|---|
-| `john-kurkowski__tldextract-1` | tldextract | Bug fix | 11 | Solved (clean +1.0 throughout) |
-| `john-kurkowski__tldextract-2` | tldextract | Bug fix | 18 | Solved (mixed positive/negative on the way) |
-| `langchain-ai__mcpdoc-1` | mcpdoc | Bug fix | 13 | Solved (mostly positive, two negative steps) |
-| `NiltonVolpato__python-progressbar-1` | python-progressbar | Refactor | 20 | Hit step limit; full struggle path recorded |
-| `un33k__python-slugify-1` | python-slugify | Bug fix | 7 | Solved (shortest run, clean +1.0 throughout) |
+## Inventory
+
+| Instance ID | Repo | Task type | Steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored | Outcome on the run |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| `john-kurkowski__tldextract-1` | tldextract | Bug fix | 11 | 9 | 0 | 0 | 0 | 2 | Solved (clean +1.0 throughout) |
+| `john-kurkowski__tldextract-2` | tldextract | Bug fix | 18 | 9 | 0 | 0 | 8 | 1 | Solved (mixed positive/negative on the way) |
+| `langchain-ai__mcpdoc-1` | mcpdoc | Bug fix | 13 | 8 | 2 | 0 | 2 | 1 | Solved (mostly positive, two negative steps) |
+| `NiltonVolpato__python-progressbar-1` | python-progressbar | Refactor | 20 | 5 | 3 | 1 | 8 | 3 | Hit step limit; full struggle path recorded |
+| `un33k__python-slugify-1` | python-slugify | Bug fix | 7 | 6 | 0 | 0 | 0 | 1 | Solved (shortest run, clean +1.0 throughout) |
+| **Total** | — | — | **69** | **37** | **5** | **1** | **18** | **8** | — |
 
 ## Per-task detail
 
@@ -67,17 +70,6 @@ All 5 runs in this collection were generated with the configuration below (value
 | `prm_api_model` | `openai/gpt-4o-mini` | 3-judge panel, per-judge votes averaged. |
 | `prm_score_aggregation` | mean of per-judge votes | Each judge votes ∈ {+1, −1}; the average is one of `{+1.0, +0.333, −0.333, −1.0}`, or `0` for unscored steps. |
 | `prm_step_coef` | `1.0` | Per-turn reward scaling factor. |
-
-### Aggregate PRM breakdown across the 5 trajectories
-
-| Trajectory | Total steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored |
-|---|---:|---:|---:|---:|---:|---:|
-| `john-kurkowski__tldextract-1` | 11 | 9 | 0 | 0 | 0 | 2 |
-| `john-kurkowski__tldextract-2` | 18 | 9 | 0 | 0 | 8 | 1 |
-| `langchain-ai__mcpdoc-1` | 13 | 8 | 2 | 0 | 2 | 1 |
-| `NiltonVolpato__python-progressbar-1` | 20 | 5 | 3 | 1 | 8 | 3 |
-| `un33k__python-slugify-1` | 7 | 6 | 0 | 0 | 0 | 1 |
-| **Total** | **69** | **37** | **5** | **1** | **18** | **8** |
 
 ## Per-step record (`traj.json`)
 
