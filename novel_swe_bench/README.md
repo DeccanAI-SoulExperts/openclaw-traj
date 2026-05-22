@@ -55,24 +55,24 @@ A task and its trajectory share the same `<instance_id>`, so pairing is by direc
 ## Folder Layout
 ```
 novel_swe_bench/
-├── task/                                       # one folder per instance
-│   ├── NiltonVolpato__python-progressbar-1/
-│   │   ├── environment_testbed/                # reproducible /testbed: Dockerfile, setup.sh, eval.sh, repo snapshot
-│   │   ├── patches/                            # gold.patch + test.patch
-│   │   ├── tests/                              # fail_to_pass.json + pass_to_pass.json
-│   │   ├── README.md                           # per-task notes
-│   │   ├── instance.json                       # full SWE-bench record (base_commit, patches, F2P/P2P, eval_script)
-│   │   ├── metadata.yaml                       # repo, base commit, difficulty signals, validation status
-│   │   └── problem_statement.md                # bug description shown to the agent (no file-name hints)
-│   ├── john-kurkowski__tldextract-1/
-│   ├── john-kurkowski__tldextract-2/
-│   ├── langchain-ai__mcpdoc-1/
-│   └── un33k__python-slugify-1/
-└── trajectory/                                 # matches task/ by instance id
-    └── NiltonVolpato__python-progressbar-1/
-        ├── meta.json                           # model, step_limit, PRM config, API base
-        ├── patch.diff                          # final patch the agent submitted (git diff --cached)
-        └── traj.json                           # full message-by-message transcript + per-step PRM scores
+├── task/
+│   └── <instance_id>/                     # e.g. NiltonVolpato__python-progressbar-1
+│       ├── problem_statement.md           # bug description shown to the agent (no file-name hints)
+│       ├── instance.json                  # full SWE-bench record (base_commit, patches, F2P/P2P, eval_script)
+│       ├── metadata.yaml                  # repo, base commit, difficulty signals, validation status
+│       ├── README.md                      # per-task notes
+│       ├── environment_testbed/           # reproducible /testbed image: Dockerfile, setup.sh, eval.sh, repo snapshot
+│       ├── patches/
+│       │   ├── gold.patch                 # reference fix
+│       │   └── test.patch                 # tests injected at eval time
+│       └── tests/
+│           ├── fail_to_pass.json          # tests that must flip FAIL → PASS
+│           └── pass_to_pass.json          # regression tests that must remain green
+└── trajectory/
+    └── <instance_id>/                     # matches task/<instance_id>
+        ├── meta.json                      # model, step_limit, PRM config, API base
+        ├── patch.diff                     # final patch the agent submitted (git diff --cached)
+        └── traj.json                      # full message-by-message transcript + per-step PRM scores
 ```
 ## Configuration
 
