@@ -8,19 +8,21 @@ Each instance is a real bug report or feature request taken from a public Python
 
 10 instances across 4 repositories. Steps and PRM scores are read directly from the live `traj.json` files.
 
-| Instance ID | Repo | Steps | Model | +1.0 | +0.333 | −0.333 | −1.0 | Not scored |
-|---|---|---:|---|---:|---:|---:|---:|---:|
-| `astropy__astropy-7606` | astropy | 9 | gpt-5 | 7 | 0 | 0 | 1 | 1 |
-| `django__django-12039` | django | 11 | gpt-5 | 7 | 1 | 0 | 1 | 2 |
-| `django__django-12304` | django | 11 | gpt-5 | 7 | 0 | 0 | 3 | 1 |
-| `django__django-14915` | django | 8 | gpt-5 | 6 | 0 | 0 | 1 | 1 |
-| `django__django-15569` | django | 9 | gpt-5 | 6 | 0 | 1 | 1 | 1 |
-| `getmoto__moto-4860` | moto | 12 | gpt-4-turbo | 6 | 0 | 0 | 5 | 1 |
-| `getmoto__moto-5502` | moto | 10 | gpt-4-turbo | 8 | 0 | 0 | 1 | 1 |
-| `getmoto__moto-5515` | moto | 7 | gpt-4-turbo | 5 | 0 | 1 | 0 | 1 |
-| `getmoto__moto-6226` | moto | 7 | gpt-4-turbo | 5 | 1 | 0 | 0 | 1 |
-| `sympy__sympy-18189` | sympy | 11 | gpt-5 | 8 | 1 | 0 | 1 | 1 |
-| **Total** | | **95** | | **65** | **3** | **2** | **14** | **11** |
+| Instance ID | Repo | Task type | Steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored | Outcome |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| `astropy__astropy-7606` | astropy | Bug fix | 9 | 7 | 0 | 0 | 1 | 1 | Solved with recovery |
+| `django__django-12039` | django | Bug fix | 11 | 7 | 1 | 0 | 1 | 2 | Solved with recovery |
+| `django__django-12304` | django | Bug fix | 11 | 7 | 0 | 0 | 3 | 1 | Solved with recovery |
+| `django__django-14915` | django | Bug fix | 8 | 6 | 0 | 0 | 1 | 1 | Solved with recovery |
+| `django__django-15569` | django | Bug fix | 9 | 6 | 0 | 1 | 1 | 1 | Solved with recovery |
+| `getmoto__moto-4860` | moto | Bug fix | 12 | 6 | 0 | 0 | 5 | 1 | Solved with recovery |
+| `getmoto__moto-5502` | moto | Bug fix | 10 | 8 | 0 | 0 | 1 | 1 | Clean Solution  |
+| `getmoto__moto-5515` | moto | Bug fix | 7 | 5 | 0 | 1 | 0 | 1 | Clean Solution |
+| `getmoto__moto-6226` | moto | Bug fix | 7 | 5 | 1 | 0 | 0 | 1 | Clean Solution |
+| `sympy__sympy-18189` | sympy | Bug fix | 11 | 8 | 1 | 0 | 1 | 1 | Solved with recovery |
+| **Total** | — | — | **95** | **65** | **3** | **2** | **14** | **11** | — |
+
+> **Coding agent:** `gpt-5` for the django, astropy, and sympy tasks; `gpt-4-turbo` for the four moto tasks. **PRM judge panel:** the same 3-judge `openai/gpt-4o-mini` ensemble used across all collections.
 
 ## Per-task detail
 
