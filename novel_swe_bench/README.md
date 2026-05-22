@@ -12,10 +12,10 @@ The 10 instances under `public_swe_bench/` cover four large, well-studied repos 
 
 ## Inventory
 
-| Instance ID | Repo | Task type | Steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored | Outcome on the run |
+| Instance ID | Repo | Task type | Steps | +1.0 | +0.333 | −0.333 | −1.0 | Not scored | Outcome |
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | `john-kurkowski__tldextract-1` | tldextract | Bug fix | 11 | 9 | 0 | 0 | 0 | 2 | Solved with recovery |
-| `john-kurkowski__tldextract-2` | tldextract | Bug fix | 18 | 9 | 0 | 0 | 8 | 1 | Solved with recoverySolved with recovery |
+| `john-kurkowski__tldextract-2` | tldextract | Bug fix | 18 | 9 | 0 | 0 | 8 | 1 | Solved with recovery |
 | `langchain-ai__mcpdoc-1` | mcpdoc | Bug fix | 13 | 8 | 2 | 0 | 2 | 1 | Solved with recovery |
 | `NiltonVolpato__python-progressbar-1` | python-progressbar | Refactor | 20 | 5 | 3 | 1 | 8 | 3 | Solved with recovery |
 | `un33k__python-slugify-1` | python-slugify | Bug fix | 7 | 6 | 0 | 0 | 0 | 1 | Solved with recovery |
