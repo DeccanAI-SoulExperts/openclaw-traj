@@ -6,6 +6,10 @@ There is **no shell sandbox** in this collection. The SME plays the role of the 
 
 All three sessions in this collection were **solved with recovery**, i.e. the agent got the final artefact to a working state, but only after multiple PRM-negative turns the SME had to push the conversation through. That mid-trajectory failure-then-fix arc is the entire point of the RLHI batch: the negative turns are the supervised signal, the eventual recovery is the reward.
 
+## Why this collection exists
+
+This is the human-interaction surface. SWE-bench-style runs measure whether the agent can pass tests on its own, but they cannot measure whether it can be *worked with*, accept a bug report from a user, sit through a few failed attempts, take a pushback, and still land a working artefact at the end. The three sessions here capture exactly that loop with `gpt-4.1` and `Qwen3-8B`, with no scripted prompting and no hand-crafted hints. The negative-heavy turn distribution (19 of 34 scored turns) is the entire point: those are the moments where directive next-state signal lives, and where RL / OPD / DPO training has the most to learn from.
+
 ---
 
 ## Inventory
